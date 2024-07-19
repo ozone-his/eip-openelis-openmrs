@@ -14,4 +14,4 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource(
         value = {"eip-openelis-openmrs.properties", "classpath:eip-openelis-openmrs.properties"},
         ignoreResourceNotFound = true)
-public class OpenmrsOpenelisConfig {}
+public class OpenelisOpenmrsConfig {}
