@@ -5,9 +5,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.ozonehis.eip.openmrs.openelis.routes;
+package com.ozonehis.eip.openelis.openmrs.routes;
 
-import com.ozonehis.eip.openmrs.openelis.processors.PatientProcessor;
+import com.ozonehis.eip.openelis.openmrs.processors.PatientProcessor;
 import lombok.Setter;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
