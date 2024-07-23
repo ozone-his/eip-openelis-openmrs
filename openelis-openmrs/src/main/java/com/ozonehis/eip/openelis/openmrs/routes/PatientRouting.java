@@ -7,6 +7,9 @@
  */
 package com.ozonehis.eip.openelis.openmrs.routes;
 
+import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
+
+import com.ozonehis.eip.openelis.openmrs.converter.FhirResourceConverter;
 import com.ozonehis.eip.openelis.openmrs.processors.PatientProcessor;
 import lombok.Setter;
 import org.apache.camel.LoggingLevel;
@@ -22,20 +25,27 @@ public class PatientRouting extends RouteBuilder {
     @Autowired
     private PatientProcessor patientProcessor;
 
+    @Autowired
+    private FhirResourceConverter fhirResourceConverter;
+
     @Override
     public void configure() {
+        getContext().getTypeConverterRegistry().addTypeConverters(fhirResourceConverter);
         // spotless:off
-        from("direct:patient-to-partner-router")
-            .routeId("patient-to-partner-router")
+        from("direct:openmrs-patient-to-openelis-patient-router")
+            .routeId("openmrs-patient-to-openelis-patient-router")
             .filter(exchange -> exchange.getMessage().getBody() instanceof Patient)
             .log(LoggingLevel.INFO, "Processing Patient")
             .process(patientProcessor)
-                //TODO: Implement PatientRouting
-                .end();
+            .choice()
+                .when(header(HEADER_FHIR_EVENT_TYPE).isEqualTo("c"))
+                    .toD("direct:openelis-create-patient-route")
+                .endChoice()
+            .end();
 
         from("direct:fhir-patient")
-            .routeId("fhir-patient-to-partner-router")
-            .to("direct:patient-to-partner-router")
+            .routeId("fhir-openmrs-patient-to-openelis-patient-router")
+            .to("direct:openmrs-patient-to-openelis-patient-router")
                 .end();
         // spotless:on
     }
