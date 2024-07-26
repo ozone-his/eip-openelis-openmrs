@@ -8,6 +8,9 @@
 package com.ozonehis.eip.openelis.openmrs.handlers;
 
 import ca.uhn.fhir.context.FhirContext;
+import com.ozonehis.eip.openelis.openmrs.Constants;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
@@ -20,7 +23,10 @@ import org.springframework.stereotype.Component;
 public class TaskHandler {
 
     public Task sendTask(ProducerTemplate producerTemplate, Task task) {
-        String response = producerTemplate.requestBody("direct:openelis-create-task-route", task, String.class);
+        Map<String, Object> headers = new HashMap<>();
+        headers.put(Constants.HEADER_TASK_ID, task.getIdPart());
+        String response = producerTemplate.requestBodyAndHeaders(
+                "direct:openelis-create-task-route", task, headers, String.class);
         FhirContext ctx = FhirContext.forR4();
         Task savedTask = ctx.newJsonParser().parseResource(Task.class, response);
         return savedTask;

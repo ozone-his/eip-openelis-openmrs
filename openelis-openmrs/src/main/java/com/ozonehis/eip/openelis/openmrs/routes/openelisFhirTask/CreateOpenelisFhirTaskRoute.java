@@ -22,18 +22,19 @@ public class CreateOpenelisFhirTaskRoute extends RouteBuilder {
     @Autowired
     private OpenelisFhirClient openelisFhirClient;
 
-    public static final String CREATE_ENDPOINT = "/fhir/Task";
+    public static final String CREATE_ENDPOINT = "/fhir/Task/";
 
     @Override
     public void configure() {
         // spotless:off
         from("direct:openelis-create-task-route")
-                .log(LoggingLevel.INFO, "Creating Task in OpenELIS...")
-                .routeId("openelis-create-task-route")
-                .setHeader(Constants.CAMEL_HTTP_METHOD, constant(Constants.POST))
-                .setHeader(Constants.CONTENT_TYPE, constant(Constants.APPLICATION_JSON))
-                .setHeader(Constants.AUTHORIZATION, constant(openelisFhirClient.authHeader()))
-                .toD(openelisFhirClient.getOpenelisFhirBaseUrl() + CREATE_ENDPOINT)
+            .log(LoggingLevel.INFO, "Creating Task in OpenELIS...")
+            .routeId("openelis-create-task-route")
+            .setHeader(Constants.CAMEL_HTTP_METHOD, constant(Constants.PUT))
+            .setHeader(Constants.CONTENT_TYPE, constant(Constants.APPLICATION_JSON))
+            .setHeader(Constants.AUTHORIZATION, constant(openelisFhirClient.authHeader()))
+            .toD(openelisFhirClient.getOpenelisFhirBaseUrl() + CREATE_ENDPOINT + "${header."
+                        + Constants.HEADER_TASK_ID + "}")
                 .end();
         // spotless:on
     }

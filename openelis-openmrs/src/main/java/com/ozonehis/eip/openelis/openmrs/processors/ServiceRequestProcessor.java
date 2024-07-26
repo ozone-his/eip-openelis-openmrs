@@ -79,8 +79,8 @@ public class ServiceRequestProcessor implements Processor {
                     if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE)
                             && serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER)) {
 
-                        String taskID = "671ee2f8-ced1-411f-aadf-d12fe1e"
-                                + RandomStringUtils.random(5, true, true).toLowerCase();
+                        String taskID = "671ee2f8-ced1-411f-aadf-"
+                                + RandomStringUtils.random(12, true, true).toLowerCase();
                         Task task = new Task();
                         task.setId(taskID);
                         task.setIdentifier(Collections.singletonList(new Identifier()

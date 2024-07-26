@@ -29,4 +29,6 @@ public class Constants {
     public static final String HEADER_PATIENT_ID = "openelis.resource.patient.id";
 
     public static final String HEADER_SERVICE_REQUEST_ID = "openelis.resource.service.request.id";
+
+    public static final String HEADER_TASK_ID = "openelis.resource.task.id";
 }
