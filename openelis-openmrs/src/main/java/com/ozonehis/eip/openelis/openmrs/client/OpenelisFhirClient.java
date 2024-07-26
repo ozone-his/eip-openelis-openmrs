@@ -33,36 +33,4 @@ public class OpenelisFhirClient {
         byte[] encodedAuth = Base64.encodeBase64(auth.getBytes());
         return "Basic " + new String(encodedAuth);
     }
-
-    //    @Bean
-    //    CamelContextConfiguration contextConfiguration() {
-    //        return new CamelContextConfiguration() {
-    //
-    //            @Override
-    //            public void beforeApplicationStart(CamelContext camelContext) {
-    //                FhirConfiguration fhirConfiguration = new FhirConfiguration();
-    //                FhirContext ctx = FhirContext.forR4();
-    //                fhirConfiguration.setServerUrl(openelisFhirBaseUrl);
-    //                IGenericClient client = ctx.newRestfulGenericClient(openelisFhirBaseUrl);
-    //
-    //
-    //                if (openelisUsername != null && !openelisUsername.isBlank() && openelisPassword != null &&
-    // !openelisPassword.isBlank()) {
-    //                        client.registerInterceptor(new BasicAuthInterceptor(openelisUsername, openelisPassword));
-    //                }
-    //
-    //                fhirConfiguration.setClient(client);
-    //                fhirConfiguration.setFhirContext(ctx);
-    //                fhirConfiguration.setSummary("DATA");
-    //
-    //                camelContext.getComponent("openelis-fhir",
-    // FhirComponent.class).setConfiguration(fhirConfiguration);
-    //            }
-    //
-    //            @Override
-    //            public void afterApplicationStart(CamelContext camelContext) {
-    //
-    //            }
-    //        };
-    //    }
 }

@@ -14,21 +14,21 @@ import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
-import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.ServiceRequest;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Setter
 @Component
-public class PatientHandler {
+public class ServiceRequestHandler {
 
-    public Patient sendPatient(ProducerTemplate producerTemplate, Patient patient) {
+    public ServiceRequest sendServiceRequest(ProducerTemplate producerTemplate, ServiceRequest serviceRequest) {
         Map<String, Object> headers = new HashMap<>();
-        headers.put(Constants.HEADER_PATIENT_ID, patient.getIdPart());
+        headers.put(Constants.HEADER_SERVICE_REQUEST_ID, serviceRequest.getIdPart());
         String response = producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-create-patient-route", patient, headers, String.class);
+                "direct:openelis-create-service-request-route", serviceRequest, headers, String.class);
         FhirContext ctx = FhirContext.forR4();
-        Patient savedPatient = ctx.newJsonParser().parseResource(Patient.class, response);
-        return savedPatient;
+        ServiceRequest savedServiceRequest = ctx.newJsonParser().parseResource(ServiceRequest.class, response);
+        return savedServiceRequest;
     }
 }

@@ -36,6 +36,7 @@ public class PatientRouting extends RouteBuilder {
             .routeId("openmrs-patient-to-openelis-patient-router")
             .filter(exchange -> exchange.getMessage().getBody() instanceof Patient)
             .log(LoggingLevel.INFO, "Processing Patient")
+            .filter(exchange -> false)
             .process(patientProcessor)
             .choice()
                 .when(header(HEADER_FHIR_EVENT_TYPE).isEqualTo("c"))
