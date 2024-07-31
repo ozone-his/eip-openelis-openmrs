@@ -8,6 +8,7 @@
 package com.ozonehis.eip.openelis.openmrs.processors;
 
 import com.ozonehis.eip.openelis.openmrs.handlers.PatientHandler;
+import com.ozonehis.eip.openelis.openmrs.handlers.PractitionerHandler;
 import com.ozonehis.eip.openelis.openmrs.handlers.ServiceRequestHandler;
 import com.ozonehis.eip.openelis.openmrs.handlers.TaskHandler;
 import java.util.ArrayList;
@@ -21,14 +22,15 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.CodeableConcept;
-import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Encounter;
+import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Practitioner;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ServiceRequest;
+import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -46,6 +48,9 @@ public class ServiceRequestProcessor implements Processor {
 
     @Autowired
     private PatientHandler patientHandler;
+
+    @Autowired
+    private PractitionerHandler practitionerHandler;
 
     @Override
     public void process(Exchange exchange) {
@@ -77,16 +82,25 @@ public class ServiceRequestProcessor implements Processor {
                 if (eventType == null) {
                     throw new IllegalArgumentException("Event type not found in the exchange headers.");
                 }
-                String serviceRequestUuid = serviceRequest.getIdPart();
                 if ("c".equals(eventType) || "u".equals(eventType)) {
                     if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE)
                             && serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER)) {
 
-                        String labNumber = "DEV" + Math.round(Math.random() * 1000000);
+                        String[] nameSplit =
+                                serviceRequest.getRequester().getDisplay().split(" ");
+
+                        Practitioner practitioner = new Practitioner();
+                        practitioner.setActive(true);
+                        practitioner.setId(
+                                serviceRequest.getRequester().getReference().split("/")[1]);
+                        practitioner.setName(Collections.singletonList(new HumanName()
+                                .setFamily(nameSplit[1])
+                                .setGiven(Collections.singletonList(new StringType(nameSplit[0])))));
+
+                        practitionerHandler.sendPractitioner(producerTemplate, practitioner);
                         patientHandler.sendPatient(producerTemplate, patientHandler.buildPatient(patient));
-                        serviceRequestHandler.sendServiceRequest(
-                                producerTemplate, buildServiceRequest(serviceRequest, labNumber));
-                        taskHandler.sendTask(producerTemplate, buildTask(serviceRequest, labNumber));
+                        serviceRequestHandler.sendServiceRequest(producerTemplate, serviceRequest);
+                        taskHandler.sendTask(producerTemplate, buildTask(serviceRequest));
 
                     } else {
                         // Executed when MODIFY option is selected in OpenMRS
@@ -102,46 +116,7 @@ public class ServiceRequestProcessor implements Processor {
         }
     }
 
-    private ServiceRequest buildServiceRequest(ServiceRequest serviceRequest, String labNumber) {
-        ServiceRequest openelisServiceRequest = new ServiceRequest();
-        openelisServiceRequest.setId(serviceRequest.getIdPart());
-
-        Identifier analysisUuid = new Identifier();
-        analysisUuid.setSystem("http://openelis-global.org/analysis_uuid");
-        analysisUuid.setValue(serviceRequest.getIdPart());
-
-        Identifier sampleLabNumber = new Identifier();
-        sampleLabNumber.setSystem("http://openelis-global.org/samp_labNo");
-        sampleLabNumber.setValue(labNumber);
-
-        List<Identifier> identifierList = new ArrayList<>();
-        identifierList.add(analysisUuid);
-        identifierList.add(sampleLabNumber);
-
-        openelisServiceRequest.setIdentifier(identifierList);
-        openelisServiceRequest.setStatus(ServiceRequest.ServiceRequestStatus.ACTIVE);
-        openelisServiceRequest.setIntent(ServiceRequest.ServiceRequestIntent.ORDER);
-
-        Coding coding = new Coding();
-        coding.setSystem("http://openelis-global.org/sample_program");
-        coding.setCode("Routine Testing");
-        coding.setDisplay("Routine Testing");
-
-        openelisServiceRequest.setCategory(
-                Collections.singletonList(new CodeableConcept().setCoding(Collections.singletonList(coding))));
-        openelisServiceRequest.setPriority(ServiceRequest.ServiceRequestPriority.ROUTINE);
-        openelisServiceRequest.setCode(new CodeableConcept()
-                .setCoding(Collections.singletonList(
-                        new Coding().setSystem("http://loinc.org").setDisplay("Albumin"))));
-        openelisServiceRequest.setSubject(serviceRequest.getSubject());
-        openelisServiceRequest.setAuthoredOn(serviceRequest.getAuthoredOn());
-        // TODO: Add locationReference
-        // TODO: Check if Specimen reference is required
-
-        return openelisServiceRequest;
-    }
-
-    private Task buildTask(ServiceRequest serviceRequest, String accessionNumber) {
+    private Task buildTask(ServiceRequest serviceRequest) {
         Task openelisTask = new Task();
         String taskUuid = UUID.randomUUID().toString();
         openelisTask.setId(taskUuid);
@@ -152,13 +127,8 @@ public class ServiceRequestProcessor implements Processor {
 
         openelisTask.setIdentifier(Collections.singletonList(orderUuid));
 
-        Identifier accessionNumberIdentifier = new Identifier();
-        accessionNumberIdentifier.setSystem("http://openelis-global.org/order_accessionNumber");
-        accessionNumberIdentifier.setValue(accessionNumber);
-
         List<Identifier> identifierList = new ArrayList<>();
         identifierList.add(orderUuid);
-        identifierList.add(accessionNumberIdentifier);
 
         openelisTask.setIdentifier(identifierList);
 
@@ -175,7 +145,7 @@ public class ServiceRequestProcessor implements Processor {
         openelisTask.setAuthoredOn(serviceRequest.getAuthoredOn());
 
         Reference ownerReference = new Reference();
-        ownerReference.setReference("Practitioner/671ee2f8-ced1-411f-aadf-d12fe1e6f2ed"); // TODO: Remove hardcode
+        ownerReference.setReference(serviceRequest.getRequester().getReference());
         ownerReference.setType("Practitioner");
 
         openelisTask.setOwner(ownerReference);

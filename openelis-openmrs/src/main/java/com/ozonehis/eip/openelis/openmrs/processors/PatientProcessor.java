@@ -14,6 +14,7 @@ import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
+import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,16 +28,15 @@ public class PatientProcessor implements Processor {
 
     @Override
     public void process(Exchange exchange) {
-        try {
+        try (ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate()) {
             Message message = exchange.getMessage();
             Patient patient = message.getBody(Patient.class);
 
             if (patient == null) {
                 return;
             }
-            Patient openelisPatient = patientHandler.buildPatient(patient);
 
-            exchange.getMessage().setBody(openelisPatient, Patient.class);
+            patientHandler.sendPatient(producerTemplate, patientHandler.buildPatient(patient));
         } catch (Exception e) {
             throw new CamelExecutionException("Error processing Patient", exchange, e);
         }

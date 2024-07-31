@@ -7,8 +7,6 @@
  */
 package com.ozonehis.eip.openelis.openmrs.routes;
 
-import static org.openmrs.eip.fhir.Constants.HEADER_FHIR_EVENT_TYPE;
-
 import com.ozonehis.eip.openelis.openmrs.converter.FhirResourceConverter;
 import com.ozonehis.eip.openelis.openmrs.processors.PatientProcessor;
 import lombok.Setter;
@@ -38,10 +36,6 @@ public class PatientRouting extends RouteBuilder {
             .log(LoggingLevel.INFO, "Processing Patient")
             .filter(exchange -> false)
             .process(patientProcessor)
-            .choice()
-                .when(header(HEADER_FHIR_EVENT_TYPE).isEqualTo("c"))
-                    .toD("direct:openelis-create-patient-route")
-                .endChoice()
             .end();
 
         from("direct:fhir-patient")
