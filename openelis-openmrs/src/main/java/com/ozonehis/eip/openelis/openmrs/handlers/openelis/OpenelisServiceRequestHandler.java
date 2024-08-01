@@ -5,7 +5,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.ozonehis.eip.openelis.openmrs.handlers;
+package com.ozonehis.eip.openelis.openmrs.handlers.openelis;
 
 import ca.uhn.fhir.context.FhirContext;
 import com.ozonehis.eip.openelis.openmrs.Constants;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Setter
 @Component
-public class ServiceRequestHandler {
+public class OpenelisServiceRequestHandler {
 
     public ServiceRequest sendServiceRequest(ProducerTemplate producerTemplate, ServiceRequest serviceRequest) {
         Map<String, Object> headers = new HashMap<>();
@@ -30,5 +30,23 @@ public class ServiceRequestHandler {
         FhirContext ctx = FhirContext.forR4();
         ServiceRequest savedServiceRequest = ctx.newJsonParser().parseResource(ServiceRequest.class, response);
         return savedServiceRequest;
+    }
+
+    public ServiceRequest getServiceRequestByID(ProducerTemplate producerTemplate, String serviceRequestID) {
+        Map<String, Object> headers = new HashMap<>();
+        headers.put(Constants.HEADER_SERVICE_REQUEST_ID, serviceRequestID);
+        String response = producerTemplate.requestBodyAndHeaders(
+                "direct:openelis-get-service-request-route", null, headers, String.class);
+        if (response.contains("gone/deleted")) {
+            // TODO: Can be moved to route as well
+            ServiceRequest deletedServiceRequestResponse = new ServiceRequest();
+            deletedServiceRequestResponse.setId((String) headers.get(Constants.HEADER_SERVICE_REQUEST_ID));
+            deletedServiceRequestResponse.setStatus(ServiceRequest.ServiceRequestStatus.REVOKED);
+            return deletedServiceRequestResponse;
+        }
+        FhirContext ctx = FhirContext.forR4();
+        ServiceRequest serviceRequestResponse = ctx.newJsonParser().parseResource(ServiceRequest.class, response);
+
+        return serviceRequestResponse;
     }
 }

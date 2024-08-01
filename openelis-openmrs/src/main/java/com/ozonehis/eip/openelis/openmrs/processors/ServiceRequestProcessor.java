@@ -7,10 +7,11 @@
  */
 package com.ozonehis.eip.openelis.openmrs.processors;
 
-import com.ozonehis.eip.openelis.openmrs.handlers.PatientHandler;
-import com.ozonehis.eip.openelis.openmrs.handlers.PractitionerHandler;
-import com.ozonehis.eip.openelis.openmrs.handlers.ServiceRequestHandler;
-import com.ozonehis.eip.openelis.openmrs.handlers.TaskHandler;
+import com.ozonehis.eip.openelis.openmrs.handlers.openelis.OpenelisPatientHandler;
+import com.ozonehis.eip.openelis.openmrs.handlers.openelis.OpenelisPractitionerHandler;
+import com.ozonehis.eip.openelis.openmrs.handlers.openelis.OpenelisServiceRequestHandler;
+import com.ozonehis.eip.openelis.openmrs.handlers.openelis.OpenelisTaskHandler;
+import com.ozonehis.eip.openelis.openmrs.handlers.openmrs.OpenmrsTaskHandler;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,16 +42,19 @@ import org.springframework.stereotype.Component;
 public class ServiceRequestProcessor implements Processor {
 
     @Autowired
-    private ServiceRequestHandler serviceRequestHandler;
+    private OpenelisServiceRequestHandler openelisServiceRequestHandler;
 
     @Autowired
-    private TaskHandler taskHandler;
+    private OpenelisTaskHandler openelisTaskHandler;
 
     @Autowired
-    private PatientHandler patientHandler;
+    private OpenelisPatientHandler openelisPatientHandler;
 
     @Autowired
-    private PractitionerHandler practitionerHandler;
+    private OpenelisPractitionerHandler openelisPractitionerHandler;
+
+    @Autowired
+    private OpenmrsTaskHandler openmrsTaskHandler;
 
     @Override
     public void process(Exchange exchange) {
@@ -89,6 +93,10 @@ public class ServiceRequestProcessor implements Processor {
                         String[] nameSplit =
                                 serviceRequest.getRequester().getDisplay().split(" ");
 
+                        Reference requesterReference = serviceRequest.getRequester();
+                        requesterReference.setReference("Practitioner/671ee2f8-ced1-411f-aadf-d12fe1e6f2ed");
+                        serviceRequest.setRequester(requesterReference);
+
                         Practitioner practitioner = new Practitioner();
                         practitioner.setActive(true);
                         practitioner.setId(
@@ -97,10 +105,13 @@ public class ServiceRequestProcessor implements Processor {
                                 .setFamily(nameSplit[1])
                                 .setGiven(Collections.singletonList(new StringType(nameSplit[0])))));
 
-                        practitionerHandler.sendPractitioner(producerTemplate, practitioner);
-                        patientHandler.sendPatient(producerTemplate, patientHandler.buildPatient(patient));
-                        serviceRequestHandler.sendServiceRequest(producerTemplate, serviceRequest);
-                        taskHandler.sendTask(producerTemplate, buildTask(serviceRequest));
+                        openelisPractitionerHandler.sendPractitioner(producerTemplate, practitioner);
+                        openelisPatientHandler.sendPatient(
+                                producerTemplate, openelisPatientHandler.buildPatient(patient));
+                        openelisServiceRequestHandler.sendServiceRequest(producerTemplate, serviceRequest);
+                        Task savedOpenelisTask =
+                                openelisTaskHandler.sendTask(producerTemplate, buildTask(serviceRequest));
+                        openmrsTaskHandler.sendTask(producerTemplate, buildTask(serviceRequest));
 
                     } else {
                         // Executed when MODIFY option is selected in OpenMRS

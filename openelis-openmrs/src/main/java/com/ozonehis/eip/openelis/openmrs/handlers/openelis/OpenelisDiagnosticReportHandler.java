@@ -5,7 +5,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.ozonehis.eip.openelis.openmrs.handlers;
+package com.ozonehis.eip.openelis.openmrs.handlers.openelis;
 
 import ca.uhn.fhir.context.FhirContext;
 import com.ozonehis.eip.openelis.openmrs.Constants;
@@ -14,21 +14,23 @@ import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
-import org.hl7.fhir.r4.model.Task;
+import org.hl7.fhir.r4.model.DiagnosticReport;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Setter
 @Component
-public class TaskHandler {
+public class OpenelisDiagnosticReportHandler {
 
-    public Task sendTask(ProducerTemplate producerTemplate, Task task) {
+    public DiagnosticReport getDiagnosticReportByDiagnosticReportID(
+            ProducerTemplate producerTemplate, String diagnosticReportID) {
         Map<String, Object> headers = new HashMap<>();
-        headers.put(Constants.HEADER_TASK_ID, task.getIdPart());
+        headers.put(Constants.HEADER_DIAGNOSTIC_REPORT_ID, diagnosticReportID);
         String response = producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-create-task-route", task, headers, String.class);
+                "direct:openelis-get-diagnostic-report-route", null, headers, String.class);
         FhirContext ctx = FhirContext.forR4();
-        Task savedTask = ctx.newJsonParser().parseResource(Task.class, response);
-        return savedTask;
+
+        DiagnosticReport fetchedDiagnosticReport = ctx.newJsonParser().parseResource(DiagnosticReport.class, response);
+        return fetchedDiagnosticReport;
     }
 }

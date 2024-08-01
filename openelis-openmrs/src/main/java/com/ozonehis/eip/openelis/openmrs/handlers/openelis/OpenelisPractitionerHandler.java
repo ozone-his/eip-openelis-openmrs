@@ -5,7 +5,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
-package com.ozonehis.eip.openelis.openmrs.handlers;
+package com.ozonehis.eip.openelis.openmrs.handlers.openelis;
 
 import ca.uhn.fhir.context.FhirContext;
 import com.ozonehis.eip.openelis.openmrs.Constants;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Setter
 @Component
-public class PractitionerHandler {
+public class OpenelisPractitionerHandler {
 
     public Practitioner sendPractitioner(ProducerTemplate producerTemplate, Practitioner practitioner) {
         Map<String, Object> headers = new HashMap<>();
