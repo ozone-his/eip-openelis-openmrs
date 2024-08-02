@@ -84,7 +84,8 @@ public class TaskProcessor implements Processor {
                     continue;
                 }
                 ServiceRequest serviceRequest = openmrsServiceRequestHandler.getServiceRequestByID(
-                        producerTemplate, task.getBasedOn().get(0).getReference());
+                        producerTemplate,
+                        task.getBasedOn().get(0).getReference().split("/")[1]);
                 if (serviceRequest.getStatus() == ServiceRequest.ServiceRequestStatus.REVOKED) {
                     openmrsTaskHandler.updateTask(
                             producerTemplate, openmrsTaskHandler.markTaskRejected(task), task.getIdPart());

@@ -20,7 +20,7 @@ public class GetOpenelisFhirDiagnosticReportRoute extends RouteBuilder {
     @Autowired
     private OpenelisFhirClient openelisFhirClient;
 
-    public static final String GET_ENDPOINT = "/DiagnosticReport/";
+    public static final String GET_ENDPOINT = "/fhir/DiagnosticReport/";
 
     @Override
     public void configure() {

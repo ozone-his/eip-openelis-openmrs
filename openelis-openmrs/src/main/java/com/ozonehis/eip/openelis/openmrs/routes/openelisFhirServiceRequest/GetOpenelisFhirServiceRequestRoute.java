@@ -21,7 +21,7 @@ public class GetOpenelisFhirServiceRequestRoute extends RouteBuilder {
     @Autowired
     private OpenelisFhirClient openelisFhirClient;
 
-    public static final String GET_ENDPOINT = "/ServiceRequest/";
+    public static final String GET_ENDPOINT = "/fhir/ServiceRequest/";
 
     @Override
     public void configure() {

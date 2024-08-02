@@ -20,14 +20,14 @@ public class GetOpenelisFhirTaskRoute extends RouteBuilder {
     @Autowired
     private OpenelisFhirClient openelisFhirClient;
 
-    public static final String GET_ENDPOINT = "/Task?based-on:ServiceRequest=";
+    public static final String GET_ENDPOINT = "/fhir/Task?based-on:ServiceRequest=";
 
     @Override
     public void configure() {
         // spotless:off
         from("direct:openelis-get-task-route")
-                .log(LoggingLevel.INFO, "Fetching Task in OpenMRS...")
-                .routeId("openmrs-get-task-route")
+                .log(LoggingLevel.INFO, "Fetching Task in OpenELIS...")
+                .routeId("openelis-get-task-route")
                 .setHeader(Constants.CAMEL_HTTP_METHOD, constant(Constants.GET))
                 .setHeader(Constants.CONTENT_TYPE, constant(Constants.APPLICATION_JSON))
                 .setHeader(Constants.AUTHORIZATION, constant(openelisFhirClient.authHeader()))

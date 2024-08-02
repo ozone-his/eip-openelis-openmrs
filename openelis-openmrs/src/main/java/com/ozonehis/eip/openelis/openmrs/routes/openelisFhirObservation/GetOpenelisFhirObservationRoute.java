@@ -20,7 +20,7 @@ public class GetOpenelisFhirObservationRoute extends RouteBuilder {
     @Autowired
     private OpenelisFhirClient openelisFhirClient;
 
-    public static final String GET_ENDPOINT = "/Observation/";
+    public static final String GET_ENDPOINT = "/fhir/Observation/";
 
     @Override
     public void configure() {
