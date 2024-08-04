@@ -83,9 +83,9 @@ public class TaskProcessor implements Processor {
                 if (!openmrsTaskHandler.doesTaskExists(task)) {
                     continue;
                 }
+                String taskBasedOnServiceRequestID = task.getBasedOn().get(0).getReference();
                 ServiceRequest serviceRequest = openmrsServiceRequestHandler.getServiceRequestByID(
-                        producerTemplate,
-                        task.getBasedOn().get(0).getReference().split("/")[1]);
+                        producerTemplate, taskBasedOnServiceRequestID);
                 if (serviceRequest.getStatus() == ServiceRequest.ServiceRequestStatus.REVOKED) {
                     openmrsTaskHandler.updateTask(
                             producerTemplate, openmrsTaskHandler.markTaskRejected(task), task.getIdPart());
@@ -94,8 +94,6 @@ public class TaskProcessor implements Processor {
                     if (task.getBasedOn() == null || task.getBasedOn().isEmpty()) {
                         continue;
                     }
-                    String taskBasedOnServiceRequestID =
-                            task.getBasedOn().get(0).getReference().split("/")[1];
 
                     Task openelisTask = openelisTaskHandler.getTaskByServiceRequestID(
                             producerTemplate, taskBasedOnServiceRequestID);

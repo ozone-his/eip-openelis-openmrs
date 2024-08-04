@@ -25,9 +25,9 @@ public class GetOpenelisFhirDiagnosticReportRoute extends RouteBuilder {
     @Override
     public void configure() {
         // spotless:off
-        from("direct:openelis-get-service-request-route")
-                .log(LoggingLevel.INFO, "Fetching Service Request in OpenELIS...")
-                .routeId("openelis-get-service-request-route")
+        from("direct:openelis-get-diagnostic-report-route")
+                .log(LoggingLevel.INFO, "Fetching Diagnostic Report in OpenELIS...")
+                .routeId("openelis-get-diagnostic-report-route")
                 .setHeader(Constants.CAMEL_HTTP_METHOD, constant(Constants.GET))
                 .setHeader(Constants.CONTENT_TYPE, constant(Constants.APPLICATION_JSON))
                 .setHeader(Constants.AUTHORIZATION, constant(openelisFhirClient.authHeader()))

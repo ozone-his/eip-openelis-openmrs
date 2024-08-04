@@ -49,6 +49,9 @@ public class OpenelisTaskHandler {
             Resource resource = entry.getResource();
             if (resource instanceof Task) {
                 task = (Task) resource;
+                if (task.getStatus() == Task.TaskStatus.COMPLETED) { // TODO: Fix this hack
+                    break;
+                }
             }
         }
         return task;

@@ -28,6 +28,7 @@ public class OpenelisDiagnosticReportHandler {
         headers.put(Constants.HEADER_DIAGNOSTIC_REPORT_ID, diagnosticReportID);
         String response = producerTemplate.requestBodyAndHeaders(
                 "direct:openelis-get-diagnostic-report-route", null, headers, String.class);
+        log.info("getDiagnosticReportByDiagnosticReportID: response {}", response);
         FhirContext ctx = FhirContext.forR4();
 
         DiagnosticReport fetchedDiagnosticReport = ctx.newJsonParser().parseResource(DiagnosticReport.class, response);

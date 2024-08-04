@@ -110,8 +110,8 @@ public class ServiceRequestProcessor implements Processor {
                                 producerTemplate, openelisPatientHandler.buildPatient(patient));
                         openelisServiceRequestHandler.sendServiceRequest(producerTemplate, serviceRequest);
                         Task savedOpenelisTask =
-                                openelisTaskHandler.sendTask(producerTemplate, buildTask(serviceRequest));
-                        openmrsTaskHandler.sendTask(producerTemplate, buildTask(serviceRequest));
+                                openelisTaskHandler.sendTask(producerTemplate, buildTask(serviceRequest, true));
+                        openmrsTaskHandler.sendTask(producerTemplate, buildTask(serviceRequest, false));
 
                     } else {
                         // Executed when MODIFY option is selected in OpenMRS
@@ -127,7 +127,7 @@ public class ServiceRequestProcessor implements Processor {
         }
     }
 
-    private Task buildTask(ServiceRequest serviceRequest) {
+    private Task buildTask(ServiceRequest serviceRequest, boolean isOpenelis) {
         Task openelisTask = new Task();
         String taskUuid = UUID.randomUUID().toString();
         openelisTask.setId(taskUuid);
@@ -143,8 +143,12 @@ public class ServiceRequestProcessor implements Processor {
 
         openelisTask.setIdentifier(identifierList);
 
-        openelisTask.setBasedOn(Collections.singletonList(
-                new Reference().setReference("ServiceRequest/" + serviceRequest.getIdPart())));
+        if (isOpenelis) {
+            openelisTask.setBasedOn(Collections.singletonList(
+                    new Reference().setReference("ServiceRequest/" + serviceRequest.getIdPart())));
+        } else {
+            openelisTask.addBasedOn().setReference(serviceRequest.getIdPart()).setType("ServiceRequest");
+        }
         openelisTask.setStatus(Task.TaskStatus.REQUESTED);
         openelisTask.setIntent(Task.TaskIntent.ORDER);
         openelisTask.setPriority(Task.TaskPriority.ROUTINE);
