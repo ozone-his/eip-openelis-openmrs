@@ -120,6 +120,9 @@ public class TaskProcessor implements Processor {
                                     Observation openelisObservation =
                                             openelisObservationHandler.getObservationByObservationID(
                                                     producerTemplate, observationID);
+                                    List<Reference> basedOn = openelisObservation.getBasedOn();
+                                    basedOn.get(0).setType("ServiceRequest");
+                                    openelisObservation.setBasedOn(basedOn);
                                     Observation savedOpenmrsObservation = openmrsObservationHandler.sendObservation(
                                             producerTemplate, openelisObservation);
                                 }
