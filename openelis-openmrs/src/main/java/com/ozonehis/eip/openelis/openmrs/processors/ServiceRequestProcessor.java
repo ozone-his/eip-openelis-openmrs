@@ -12,10 +12,7 @@ import com.ozonehis.eip.openelis.openmrs.handlers.openelis.OpenelisPractitionerH
 import com.ozonehis.eip.openelis.openmrs.handlers.openelis.OpenelisServiceRequestHandler;
 import com.ozonehis.eip.openelis.openmrs.handlers.openelis.OpenelisTaskHandler;
 import com.ozonehis.eip.openelis.openmrs.handlers.openmrs.OpenmrsTaskHandler;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelExecutionException;
@@ -24,14 +21,10 @@ import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Encounter;
-import org.hl7.fhir.r4.model.HumanName;
-import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.Practitioner;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ServiceRequest;
-import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -89,29 +82,25 @@ public class ServiceRequestProcessor implements Processor {
                 if ("c".equals(eventType) || "u".equals(eventType)) {
                     if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE)
                             && serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER)) {
+                        Task fetchedTask = openelisTaskHandler.getTaskByServiceRequestID(
+                                producerTemplate, serviceRequest.getIdPart());
+                        if (openelisTaskHandler.doesTaskExists(fetchedTask)) {
+                            log.info("Task already exists for ServiceRequest {}", serviceRequest.getIdPart());
+                            return;
+                        }
 
-                        String[] nameSplit =
-                                serviceRequest.getRequester().getDisplay().split(" ");
-
+                        // TODO: Remove when OpenELIS accepts wildcards `Practitioner/*`
                         Reference requesterReference = serviceRequest.getRequester();
                         requesterReference.setReference("Practitioner/671ee2f8-ced1-411f-aadf-d12fe1e6f2ed");
                         serviceRequest.setRequester(requesterReference);
 
-                        Practitioner practitioner = new Practitioner();
-                        practitioner.setActive(true);
-                        practitioner.setId(
-                                serviceRequest.getRequester().getReference().split("/")[1]);
-                        practitioner.setName(Collections.singletonList(new HumanName()
-                                .setFamily(nameSplit[1])
-                                .setGiven(Collections.singletonList(new StringType(nameSplit[0])))));
-
-                        openelisPractitionerHandler.sendPractitioner(producerTemplate, practitioner);
+                        openelisPractitionerHandler.sendPractitioner(
+                                producerTemplate, openelisPractitionerHandler.buildPractitioner(serviceRequest));
                         openelisPatientHandler.sendPatient(
                                 producerTemplate, openelisPatientHandler.buildPatient(patient));
                         openelisServiceRequestHandler.sendServiceRequest(producerTemplate, serviceRequest);
-                        Task savedOpenelisTask =
-                                openelisTaskHandler.sendTask(producerTemplate, buildTask(serviceRequest, true));
-                        openmrsTaskHandler.sendTask(producerTemplate, buildTask(serviceRequest, false));
+                        openelisTaskHandler.sendTask(producerTemplate, openelisTaskHandler.buildTask(serviceRequest));
+                        openmrsTaskHandler.sendTask(producerTemplate, openmrsTaskHandler.buildTask(serviceRequest));
 
                     } else {
                         // Executed when MODIFY option is selected in OpenMRS
@@ -125,46 +114,5 @@ public class ServiceRequestProcessor implements Processor {
         } catch (Exception e) {
             throw new CamelExecutionException("Error processing ServiceRequest", exchange, e);
         }
-    }
-
-    private Task buildTask(ServiceRequest serviceRequest, boolean isOpenelis) {
-        Task openelisTask = new Task();
-        String taskUuid = UUID.randomUUID().toString();
-        openelisTask.setId(taskUuid);
-
-        Identifier orderUuid = new Identifier();
-        orderUuid.setSystem("http://openelis-global.org/order_uuid");
-        orderUuid.setValue(taskUuid);
-
-        openelisTask.setIdentifier(Collections.singletonList(orderUuid));
-
-        List<Identifier> identifierList = new ArrayList<>();
-        identifierList.add(orderUuid);
-
-        openelisTask.setIdentifier(identifierList);
-
-        if (isOpenelis) {
-            openelisTask.setBasedOn(Collections.singletonList(
-                    new Reference().setReference("ServiceRequest/" + serviceRequest.getIdPart())));
-        } else {
-            openelisTask.addBasedOn().setReference(serviceRequest.getIdPart()).setType("ServiceRequest");
-        }
-        openelisTask.setStatus(Task.TaskStatus.REQUESTED);
-        openelisTask.setIntent(Task.TaskIntent.ORDER);
-        openelisTask.setPriority(Task.TaskPriority.ROUTINE);
-
-        log.info("buildTask: Patient reference {}", serviceRequest.getSubject().getReference());
-
-        openelisTask.setFor(
-                new Reference().setReference(serviceRequest.getSubject().getReference()));
-        openelisTask.setAuthoredOn(serviceRequest.getAuthoredOn());
-
-        Reference ownerReference = new Reference();
-        ownerReference.setReference(serviceRequest.getRequester().getReference());
-        ownerReference.setType("Practitioner");
-
-        openelisTask.setOwner(ownerReference);
-
-        return openelisTask;
     }
 }

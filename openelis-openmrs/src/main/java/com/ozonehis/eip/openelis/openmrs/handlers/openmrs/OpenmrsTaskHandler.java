@@ -9,11 +9,18 @@ package com.ozonehis.eip.openelis.openmrs.handlers.openmrs;
 
 import ca.uhn.fhir.context.FhirContext;
 import com.ozonehis.eip.openelis.openmrs.Constants;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
+import org.hl7.fhir.r4.model.Identifier;
+import org.hl7.fhir.r4.model.Reference;
+import org.hl7.fhir.r4.model.ServiceRequest;
 import org.hl7.fhir.r4.model.Task;
 import org.springframework.stereotype.Component;
 
@@ -47,15 +54,50 @@ public class OpenmrsTaskHandler {
         return rejectTask;
     }
 
-    public Task updateTaskStatus(Task task, String analysisRequestTaskStatus) {
+    public Task markTaskCompleted(Task task) {
         Task updateTask = new Task();
         updateTask.setId(task.getIdPart());
         updateTask.setIntent(Task.TaskIntent.ORDER);
-        updateTask.setStatus(Task.TaskStatus.fromCode(analysisRequestTaskStatus));
+        updateTask.setStatus(Task.TaskStatus.COMPLETED);
         return updateTask;
     }
 
     public boolean doesTaskExists(Task task) {
         return task != null && task.getId() != null && !task.getId().isEmpty() && task.getStatus() != null;
+    }
+
+    public Task buildTask(ServiceRequest serviceRequest) {
+        Task openelisTask = new Task();
+        String taskUuid = UUID.randomUUID().toString();
+        openelisTask.setId(taskUuid);
+
+        Identifier orderUuid = new Identifier();
+        orderUuid.setSystem("http://openelis-global.org/order_uuid");
+        orderUuid.setValue(taskUuid);
+
+        openelisTask.setIdentifier(Collections.singletonList(orderUuid));
+
+        List<Identifier> identifierList = new ArrayList<>();
+        identifierList.add(orderUuid);
+
+        openelisTask.setIdentifier(identifierList);
+
+        openelisTask.addBasedOn().setReference(serviceRequest.getIdPart()).setType("ServiceRequest");
+
+        openelisTask.setStatus(Task.TaskStatus.REQUESTED);
+        openelisTask.setIntent(Task.TaskIntent.ORDER);
+        openelisTask.setPriority(Task.TaskPriority.ROUTINE);
+
+        openelisTask.setFor(
+                new Reference().setReference(serviceRequest.getSubject().getReference()));
+        openelisTask.setAuthoredOn(serviceRequest.getAuthoredOn());
+
+        Reference ownerReference = new Reference();
+        ownerReference.setReference(serviceRequest.getRequester().getReference());
+        ownerReference.setType("Practitioner");
+
+        openelisTask.setOwner(ownerReference);
+
+        return openelisTask;
     }
 }

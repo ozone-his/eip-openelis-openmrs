@@ -9,12 +9,16 @@ package com.ozonehis.eip.openelis.openmrs.handlers.openelis;
 
 import ca.uhn.fhir.context.FhirContext;
 import com.ozonehis.eip.openelis.openmrs.Constants;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
+import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Practitioner;
+import org.hl7.fhir.r4.model.ServiceRequest;
+import org.hl7.fhir.r4.model.StringType;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -30,5 +34,18 @@ public class OpenelisPractitionerHandler {
         FhirContext ctx = FhirContext.forR4();
         Practitioner savedPractitioner = ctx.newJsonParser().parseResource(Practitioner.class, response);
         return savedPractitioner;
+    }
+
+    public Practitioner buildPractitioner(ServiceRequest serviceRequest) {
+        String[] nameSplit = serviceRequest.getRequester().getDisplay().split(" ");
+
+        Practitioner practitioner = new Practitioner();
+        practitioner.setActive(true);
+        practitioner.setId(serviceRequest.getRequester().getReference().split("/")[1]);
+        practitioner.setName(Collections.singletonList(new HumanName()
+                .setFamily(nameSplit[1])
+                .setGiven(Collections.singletonList(new StringType(nameSplit[0])))));
+
+        return practitioner;
     }
 }
