@@ -20,6 +20,8 @@ public class Constants {
 
     public static final String PUT = "PUT";
 
+    public static final String DELETE = "DELETE";
+
     public static final String APPLICATION_JSON = "application/json";
 
     public static final String HEADER_ENABLE_PATIENT_SYNC = "enable.patient.sync";

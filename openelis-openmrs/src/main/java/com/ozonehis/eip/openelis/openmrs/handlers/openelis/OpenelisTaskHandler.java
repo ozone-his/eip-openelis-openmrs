@@ -63,6 +63,14 @@ public class OpenelisTaskHandler {
         return task;
     }
 
+    public void deleteTask(ProducerTemplate producerTemplate, String taskID) {
+        Map<String, Object> headers = new HashMap<>();
+        headers.put(Constants.HEADER_TASK_ID, taskID);
+        String response = producerTemplate.requestBodyAndHeaders(
+                "direct:openelis-delete-task-route", null, headers, String.class);
+        log.info("Openelis: deleteTask response {}", response);
+    }
+
     public boolean doesTaskExists(Task task) {
         return task != null && task.getId() != null && !task.getId().isEmpty() && task.getStatus() != null;
     }

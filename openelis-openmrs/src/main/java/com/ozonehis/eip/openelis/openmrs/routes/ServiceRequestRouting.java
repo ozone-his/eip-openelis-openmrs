@@ -40,7 +40,7 @@ public class ServiceRequestRouting extends RouteBuilder {
         getContext().getTypeConverterRegistry().addTypeConverters(fhirResourceConverter);
         // spotless:off
         from("direct:fhir-servicerequest")
-                .routeId("service-request-to-analysis-request-router")
+                .routeId("openmrs-service-request-to-openelis-service-request-router")
                 .filter(body().isNotNull())
                 .filter(exchange -> exchange.getMessage().getBody() instanceof ServiceRequest)
                 .process(exchange -> {
@@ -51,11 +51,11 @@ public class ServiceRequestRouting extends RouteBuilder {
                     exchange.getMessage().setBody(serviceRequest);
                 })
                 .toD("openmrs-fhir://?" + SEARCH_PARAMS)
-                .to("direct:service-request-to-analysis-request-processor")
+                .to("direct:openmrs-service-request-to-openelis-service-request-processor")
                 .end();
 
-        from("direct:service-request-to-analysis-request-processor")
-                .routeId("service-request-to-analysis-request-processor")
+        from("direct:openmrs-service-request-to-openelis-service-request-processor")
+                .routeId("openmrs-service-request-to-openelis-service-request-processor")
                 .process(serviceRequestProcessor)
                 .log(LoggingLevel.INFO, "Processed ServiceRequest")
                 .end();

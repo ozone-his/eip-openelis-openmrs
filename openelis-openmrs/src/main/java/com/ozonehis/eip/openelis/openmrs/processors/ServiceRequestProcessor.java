@@ -104,15 +104,34 @@ public class ServiceRequestProcessor implements Processor {
 
                     } else {
                         // Executed when MODIFY option is selected in OpenMRS
+                        cancelServiceRequest(producerTemplate, serviceRequest);
                     }
                 } else if ("d".equals(eventType)) {
                     // Executed when DISCONTINUE option is selected in OpenMRS
+                    cancelServiceRequest(producerTemplate, serviceRequest);
                 } else {
                     throw new IllegalArgumentException("Unsupported event type: " + eventType);
                 }
             }
         } catch (Exception e) {
             throw new CamelExecutionException("Error processing ServiceRequest", exchange, e);
+        }
+    }
+
+    private void cancelServiceRequest(ProducerTemplate producerTemplate, ServiceRequest openmrsServiceRequest) {
+        // Cancel OpenELIS Task and then cancel OpenELIS ServiceRequest
+        Task openelisTask =
+                openelisTaskHandler.getTaskByServiceRequestID(producerTemplate, openmrsServiceRequest.getIdPart());
+        if (openelisTaskHandler.doesTaskExists(openelisTask)) {
+            openelisTaskHandler.deleteTask(producerTemplate, openelisTask.getIdPart());
+            openelisServiceRequestHandler.deleteServiceRequest(producerTemplate, openmrsServiceRequest.getIdPart());
+        }
+
+        // Cancel OpenMRS Task
+        Task openmrsTask =
+                openmrsTaskHandler.getTaskByServiceRequestID(producerTemplate, openmrsServiceRequest.getIdPart());
+        if (openmrsTaskHandler.doesTaskExists(openmrsTask)) {
+            openmrsTaskHandler.deleteTask(producerTemplate, openmrsTask.getIdPart());
         }
     }
 }

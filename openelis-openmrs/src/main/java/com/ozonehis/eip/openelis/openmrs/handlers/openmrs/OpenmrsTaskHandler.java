@@ -18,8 +18,10 @@ import java.util.UUID;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
+import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Reference;
+import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.hl7.fhir.r4.model.Task;
 import org.springframework.stereotype.Component;
@@ -64,6 +66,35 @@ public class OpenmrsTaskHandler {
 
     public boolean doesTaskExists(Task task) {
         return task != null && task.getId() != null && !task.getId().isEmpty() && task.getStatus() != null;
+    }
+
+    public Task getTaskByServiceRequestID(ProducerTemplate producerTemplate, String serviceRequestID) {
+        Map<String, Object> headers = new HashMap<>();
+        headers.put(Constants.HEADER_SERVICE_REQUEST_ID, serviceRequestID);
+        String response =
+                producerTemplate.requestBodyAndHeaders("direct:openmrs-get-task-route", null, headers, String.class);
+        log.info("Openmrs: getTaskByServiceRequestID {}", response);
+        FhirContext ctx = FhirContext.forR4();
+        Bundle bundle = ctx.newJsonParser().parseResource(Bundle.class, response);
+        List<Bundle.BundleEntryComponent> entries = bundle.getEntry();
+
+        Task task = null;
+        for (Bundle.BundleEntryComponent entry : entries) {
+            Resource resource = entry.getResource();
+            if (resource instanceof Task) {
+                task = (Task) resource;
+            }
+        }
+        return task;
+    }
+
+    public void deleteTask(ProducerTemplate producerTemplate, String taskID) {
+        Map<String, Object> headers = new HashMap<>();
+        headers.put(Constants.HEADER_TASK_ID, taskID);
+        String response =
+                producerTemplate.requestBodyAndHeaders("direct:openmrs-delete-task-route", null, headers, String.class);
+
+        log.info("Openmrs: deleteTask response {}", response);
     }
 
     public Task buildTask(ServiceRequest serviceRequest) {

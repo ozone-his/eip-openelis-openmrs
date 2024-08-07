@@ -32,21 +32,12 @@ public class OpenelisServiceRequestHandler {
         return savedServiceRequest;
     }
 
-    public ServiceRequest getServiceRequestByID(ProducerTemplate producerTemplate, String serviceRequestID) {
+    public void deleteServiceRequest(ProducerTemplate producerTemplate, String serviceRequestID) {
         Map<String, Object> headers = new HashMap<>();
         headers.put(Constants.HEADER_SERVICE_REQUEST_ID, serviceRequestID);
         String response = producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-get-service-request-route", null, headers, String.class);
-        if (response.contains("gone/deleted")) {
-            // TODO: Can be moved to route as well
-            ServiceRequest deletedServiceRequestResponse = new ServiceRequest();
-            deletedServiceRequestResponse.setId((String) headers.get(Constants.HEADER_SERVICE_REQUEST_ID));
-            deletedServiceRequestResponse.setStatus(ServiceRequest.ServiceRequestStatus.REVOKED);
-            return deletedServiceRequestResponse;
-        }
-        FhirContext ctx = FhirContext.forR4();
-        ServiceRequest serviceRequestResponse = ctx.newJsonParser().parseResource(ServiceRequest.class, response);
+                "direct:openelis-delete-service-request-route", null, headers, String.class);
 
-        return serviceRequestResponse;
+        log.info("Openelis: deleteServiceRequest response {}", response);
     }
 }
