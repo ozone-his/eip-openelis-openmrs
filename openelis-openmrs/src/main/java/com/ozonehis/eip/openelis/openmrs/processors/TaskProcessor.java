@@ -167,6 +167,7 @@ public class TaskProcessor implements Processor {
         openmrsObservation.setEffective(openelisObservation.getEffective());
         openmrsObservation.setIssued(openelisObservation.getIssued());
         openmrsObservation.setValue(openelisObservation.getValue());
+        openmrsObservation.setReferenceRange(openelisObservation.getReferenceRange());
 
         return openmrsObservation;
     }
