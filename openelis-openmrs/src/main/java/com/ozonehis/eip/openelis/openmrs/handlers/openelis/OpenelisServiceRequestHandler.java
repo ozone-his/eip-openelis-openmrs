@@ -26,7 +26,7 @@ public class OpenelisServiceRequestHandler {
         Map<String, Object> headers = new HashMap<>();
         headers.put(Constants.HEADER_SERVICE_REQUEST_ID, serviceRequest.getIdPart());
         String response = producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-create-service-request-route", serviceRequest, headers, String.class);
+                "direct:openelis-create-resource-route", serviceRequest, headers, String.class);
         FhirContext ctx = FhirContext.forR4();
         ServiceRequest savedServiceRequest = ctx.newJsonParser().parseResource(ServiceRequest.class, response);
         return savedServiceRequest;

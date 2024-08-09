@@ -30,7 +30,7 @@ public class OpenelisPractitionerHandler {
         Map<String, Object> headers = new HashMap<>();
         headers.put(Constants.HEADER_PRACTITIONER_ID, practitioner.getIdPart());
         String response = producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-create-practitioner-route", practitioner, headers, String.class);
+                "direct:openelis-create-resource-route", practitioner, headers, String.class);
         FhirContext ctx = FhirContext.forR4();
         Practitioner savedPractitioner = ctx.newJsonParser().parseResource(Practitioner.class, response);
         return savedPractitioner;

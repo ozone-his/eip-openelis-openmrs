@@ -35,7 +35,7 @@ public class OpenelisTaskHandler {
         Map<String, Object> headers = new HashMap<>();
         headers.put(Constants.HEADER_TASK_ID, task.getIdPart());
         String response = producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-create-task-route", task, headers, String.class);
+                "direct:openelis-create-resource-route", task, headers, String.class);
         FhirContext ctx = FhirContext.forR4();
         Task savedTask = ctx.newJsonParser().parseResource(Task.class, response);
         return savedTask;

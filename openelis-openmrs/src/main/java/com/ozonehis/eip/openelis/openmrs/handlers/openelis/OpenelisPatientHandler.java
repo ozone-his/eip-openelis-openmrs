@@ -29,7 +29,7 @@ public class OpenelisPatientHandler {
         Map<String, Object> headers = new HashMap<>();
         headers.put(Constants.HEADER_PATIENT_ID, patient.getIdPart());
         String response = producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-create-patient-route", patient, headers, String.class);
+                "direct:openelis-create-resource-route", patient, headers, String.class);
         FhirContext ctx = FhirContext.forR4();
         Patient savedPatient = ctx.newJsonParser().parseResource(Patient.class, response);
         return savedPatient;

@@ -20,8 +20,8 @@ import org.springframework.stereotype.Component;
 public class OpenmrsDiagnosticReportHandler {
 
     public DiagnosticReport sendDiagnosticReport(ProducerTemplate producerTemplate, DiagnosticReport diagnosticReport) {
-        String response = producerTemplate.requestBody(
-                "direct:openmrs-create-diagnostic-report-route", diagnosticReport, String.class);
+        String response =
+                producerTemplate.requestBody("direct:openmrs-create-resource-route", diagnosticReport, String.class);
         FhirContext ctx = FhirContext.forR4();
         DiagnosticReport savedDiagnosticReport = ctx.newJsonParser().parseResource(DiagnosticReport.class, response);
         return savedDiagnosticReport;
