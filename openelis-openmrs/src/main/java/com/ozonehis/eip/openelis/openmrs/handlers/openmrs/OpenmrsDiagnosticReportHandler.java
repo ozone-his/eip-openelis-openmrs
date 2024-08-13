@@ -7,7 +7,6 @@
  */
 package com.ozonehis.eip.openelis.openmrs.handlers.openmrs;
 
-import ca.uhn.fhir.context.FhirContext;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
@@ -20,10 +19,8 @@ import org.springframework.stereotype.Component;
 public class OpenmrsDiagnosticReportHandler {
 
     public DiagnosticReport sendDiagnosticReport(ProducerTemplate producerTemplate, DiagnosticReport diagnosticReport) {
-        String response =
-                producerTemplate.requestBody("direct:openmrs-create-resource-route", diagnosticReport, String.class);
-        FhirContext ctx = FhirContext.forR4();
-        DiagnosticReport savedDiagnosticReport = ctx.newJsonParser().parseResource(DiagnosticReport.class, response);
-        return savedDiagnosticReport;
+
+        return producerTemplate.requestBody(
+                "direct:openmrs-create-resource-route", diagnosticReport, DiagnosticReport.class);
     }
 }

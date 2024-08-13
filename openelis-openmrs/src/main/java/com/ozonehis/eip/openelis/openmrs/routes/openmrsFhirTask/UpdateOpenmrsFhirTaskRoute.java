@@ -8,19 +8,13 @@
 package com.ozonehis.eip.openelis.openmrs.routes.openmrsFhirTask;
 
 import com.ozonehis.eip.openelis.openmrs.Constants;
-import com.ozonehis.eip.openelis.openmrs.client.OpenmrsFhirClient;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hl7.fhir.r4.model.Task;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UpdateOpenmrsFhirTaskRoute extends RouteBuilder {
-
-    @Autowired
-    private OpenmrsFhirClient openmrsFhirClient;
-
-    public static final String UPDATE_ENDPOINT = "/Task/";
 
     @Override
     public void configure() {
@@ -28,11 +22,14 @@ public class UpdateOpenmrsFhirTaskRoute extends RouteBuilder {
         from("direct:openmrs-update-task-route")
                 .log(LoggingLevel.INFO, "Updating Task in OpenMRS...")
                 .routeId("openmrs-update-task-route")
-                .setHeader(Constants.CAMEL_HTTP_METHOD, constant(Constants.PUT))
-                .setHeader(Constants.CONTENT_TYPE, constant(Constants.APPLICATION_JSON))
-                .setHeader(Constants.AUTHORIZATION, constant(openmrsFhirClient.authHeader()))
-                .toD(openmrsFhirClient.getOpenmrsFhirBaseUrl() + UPDATE_ENDPOINT + "${header."
+                .marshal()
+                .fhirJson("R4")
+                .convertBodyTo(String.class)
+                .toD("fhir://update/resource?inBody=resourceAsString&stringId=" + "${header."
                         + Constants.HEADER_TASK_ID + "}")
+                .marshal()
+                .fhirJson("R4")
+                .convertBodyTo(Task.class)
                 .end();
         // spotless:on
     }

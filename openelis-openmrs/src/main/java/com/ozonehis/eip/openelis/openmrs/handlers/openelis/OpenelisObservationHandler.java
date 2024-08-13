@@ -7,7 +7,6 @@
  */
 package com.ozonehis.eip.openelis.openmrs.handlers.openelis;
 
-import ca.uhn.fhir.context.FhirContext;
 import com.ozonehis.eip.openelis.openmrs.Constants;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,11 +24,8 @@ public class OpenelisObservationHandler {
     public Observation getObservationByObservationID(ProducerTemplate producerTemplate, String observationID) {
         Map<String, Object> headers = new HashMap<>();
         headers.put(Constants.HEADER_OBSERVATION_ID, observationID);
-        String response = producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-get-observation-route", null, headers, String.class);
-        log.info("getObservationByObservationID: response {}", response);
-        FhirContext ctx = FhirContext.forR4();
-        Observation fetchedObservation = ctx.newJsonParser().parseResource(Observation.class, response);
-        return fetchedObservation;
+
+        return producerTemplate.requestBodyAndHeaders(
+                "direct:openelis-get-observation-route", null, headers, Observation.class);
     }
 }

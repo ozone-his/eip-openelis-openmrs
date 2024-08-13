@@ -8,21 +8,14 @@
 package com.ozonehis.eip.openelis.openmrs.routes.openelisFhirServiceRequest;
 
 import com.ozonehis.eip.openelis.openmrs.Constants;
-import com.ozonehis.eip.openelis.openmrs.client.OpenelisFhirClient;
 import lombok.AllArgsConstructor;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor
 public class DeleteOpenelisFhirServiceRequestRoute extends RouteBuilder {
-
-    @Autowired
-    private OpenelisFhirClient openelisFhirClient;
-
-    public static final String DELETE_ENDPOINT = "/fhir/ServiceRequest/";
 
     @Override
     public void configure() {
@@ -30,11 +23,11 @@ public class DeleteOpenelisFhirServiceRequestRoute extends RouteBuilder {
         from("direct:openelis-delete-service-request-route")
                 .log(LoggingLevel.INFO, "Deleting ServiceRequest in OpenELIS...")
                 .routeId("openelis-delete-service-request-route")
-                .setHeader(Constants.CAMEL_HTTP_METHOD, constant(Constants.DELETE))
-                .setHeader(Constants.CONTENT_TYPE, constant(Constants.APPLICATION_JSON))
-                .setHeader(Constants.AUTHORIZATION, constant(openelisFhirClient.authHeader()))
-                .toD(openelisFhirClient.getOpenelisFhirBaseUrl() + DELETE_ENDPOINT + "${header."
+                .toD("openelisfhir://delete/resourceById?type=ServiceRequest&stringId=" + "${header."
                         + Constants.HEADER_SERVICE_REQUEST_ID + "}")
+                .marshal()
+                .fhirJson("R4")
+                .convertBodyTo(String.class)
                 .end();
         // spotless:on
     }

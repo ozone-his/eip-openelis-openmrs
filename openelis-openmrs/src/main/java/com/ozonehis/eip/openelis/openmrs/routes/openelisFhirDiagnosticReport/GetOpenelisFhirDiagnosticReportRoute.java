@@ -8,19 +8,13 @@
 package com.ozonehis.eip.openelis.openmrs.routes.openelisFhirDiagnosticReport;
 
 import com.ozonehis.eip.openelis.openmrs.Constants;
-import com.ozonehis.eip.openelis.openmrs.client.OpenelisFhirClient;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hl7.fhir.r4.model.DiagnosticReport;
 import org.springframework.stereotype.Component;
 
 @Component
 public class GetOpenelisFhirDiagnosticReportRoute extends RouteBuilder {
-
-    @Autowired
-    private OpenelisFhirClient openelisFhirClient;
-
-    public static final String GET_ENDPOINT = "/fhir/DiagnosticReport/";
 
     @Override
     public void configure() {
@@ -28,11 +22,11 @@ public class GetOpenelisFhirDiagnosticReportRoute extends RouteBuilder {
         from("direct:openelis-get-diagnostic-report-route")
                 .log(LoggingLevel.INFO, "Fetching Diagnostic Report in OpenELIS...")
                 .routeId("openelis-get-diagnostic-report-route")
-                .setHeader(Constants.CAMEL_HTTP_METHOD, constant(Constants.GET))
-                .setHeader(Constants.CONTENT_TYPE, constant(Constants.APPLICATION_JSON))
-                .setHeader(Constants.AUTHORIZATION, constant(openelisFhirClient.authHeader()))
-                .toD(openelisFhirClient.getOpenelisFhirBaseUrl() + GET_ENDPOINT + "${header."
+                .toD("openelisfhir:read/resourceById?resourceClass=DiagnosticReport&stringId=" + "${header."
                         + Constants.HEADER_DIAGNOSTIC_REPORT_ID + "}")
+                .marshal()
+                .fhirJson("R4")
+                .convertBodyTo(DiagnosticReport.class)
                 .end();
         // spotless:on
     }

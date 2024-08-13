@@ -8,19 +8,15 @@
 package com.ozonehis.eip.openelis.openmrs.routes.openelisFhirTask;
 
 import com.ozonehis.eip.openelis.openmrs.Constants;
-import com.ozonehis.eip.openelis.openmrs.client.OpenelisFhirClient;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hl7.fhir.r4.model.Bundle;
 import org.springframework.stereotype.Component;
 
 @Component
 public class GetOpenelisFhirTaskRoute extends RouteBuilder {
 
-    @Autowired
-    private OpenelisFhirClient openelisFhirClient;
-
-    public static final String GET_ENDPOINT = "/fhir/Task?based-on:ServiceRequest=";
+    public static final String GET_ENDPOINT = "/Task?based-on:ServiceRequest=";
 
     @Override
     public void configure() {
@@ -28,11 +24,11 @@ public class GetOpenelisFhirTaskRoute extends RouteBuilder {
         from("direct:openelis-get-task-route")
                 .log(LoggingLevel.INFO, "Fetching Task in OpenELIS...")
                 .routeId("openelis-get-task-route")
-                .setHeader(Constants.CAMEL_HTTP_METHOD, constant(Constants.GET))
-                .setHeader(Constants.CONTENT_TYPE, constant(Constants.APPLICATION_JSON))
-                .setHeader(Constants.AUTHORIZATION, constant(openelisFhirClient.authHeader()))
-                .toD(openelisFhirClient.getOpenelisFhirBaseUrl() + GET_ENDPOINT + "${header."
+                .toD("openelisfhir://search/searchByUrl?url=" + GET_ENDPOINT + "${header."
                         + Constants.HEADER_SERVICE_REQUEST_ID + "}")
+                .marshal()
+                .fhirJson("R4")
+                .convertBodyTo(Bundle.class)
                 .end();
         // spotless:on
     }

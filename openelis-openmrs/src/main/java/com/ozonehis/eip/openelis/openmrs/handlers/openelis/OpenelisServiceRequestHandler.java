@@ -7,7 +7,6 @@
  */
 package com.ozonehis.eip.openelis.openmrs.handlers.openelis;
 
-import ca.uhn.fhir.context.FhirContext;
 import com.ozonehis.eip.openelis.openmrs.Constants;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,11 +24,9 @@ public class OpenelisServiceRequestHandler {
     public ServiceRequest sendServiceRequest(ProducerTemplate producerTemplate, ServiceRequest serviceRequest) {
         Map<String, Object> headers = new HashMap<>();
         headers.put(Constants.HEADER_SERVICE_REQUEST_ID, serviceRequest.getIdPart());
-        String response = producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-create-resource-route", serviceRequest, headers, String.class);
-        FhirContext ctx = FhirContext.forR4();
-        ServiceRequest savedServiceRequest = ctx.newJsonParser().parseResource(ServiceRequest.class, response);
-        return savedServiceRequest;
+
+        return producerTemplate.requestBodyAndHeaders(
+                "direct:openelis-create-resource-route", serviceRequest, headers, ServiceRequest.class);
     }
 
     public void deleteServiceRequest(ProducerTemplate producerTemplate, String serviceRequestID) {

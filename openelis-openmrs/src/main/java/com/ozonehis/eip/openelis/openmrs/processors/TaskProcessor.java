@@ -7,7 +7,6 @@
  */
 package com.ozonehis.eip.openelis.openmrs.processors;
 
-import ca.uhn.fhir.context.FhirContext;
 import com.ozonehis.eip.openelis.openmrs.handlers.openelis.OpenelisDiagnosticReportHandler;
 import com.ozonehis.eip.openelis.openmrs.handlers.openelis.OpenelisObservationHandler;
 import com.ozonehis.eip.openelis.openmrs.handlers.openelis.OpenelisServiceRequestHandler;
@@ -69,10 +68,7 @@ public class TaskProcessor implements Processor {
     @Override
     public void process(Exchange exchange) {
         try (ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate()) {
-            String body = exchange.getMessage().getBody(String.class);
-            log.debug("TaskProcessor: Body {}", body);
-            FhirContext ctx = FhirContext.forR4();
-            Bundle bundle = ctx.newJsonParser().parseResource(Bundle.class, body);
+            Bundle bundle = exchange.getMessage().getBody(Bundle.class);
             List<Bundle.BundleEntryComponent> entries = bundle.getEntry();
             for (Bundle.BundleEntryComponent entry : entries) {
                 Task openmrsTask = null;

@@ -7,7 +7,6 @@
  */
 package com.ozonehis.eip.openelis.openmrs.handlers.openelis;
 
-import ca.uhn.fhir.context.FhirContext;
 import com.ozonehis.eip.openelis.openmrs.Constants;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,11 +27,8 @@ public class OpenelisPatientHandler {
     public Patient sendPatient(ProducerTemplate producerTemplate, Patient patient) {
         Map<String, Object> headers = new HashMap<>();
         headers.put(Constants.HEADER_PATIENT_ID, patient.getIdPart());
-        String response = producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-create-resource-route", patient, headers, String.class);
-        FhirContext ctx = FhirContext.forR4();
-        Patient savedPatient = ctx.newJsonParser().parseResource(Patient.class, response);
-        return savedPatient;
+        return producerTemplate.requestBodyAndHeaders(
+                "direct:openelis-create-resource-route", patient, headers, Patient.class);
     }
 
     public Patient buildPatient(Patient patient) {

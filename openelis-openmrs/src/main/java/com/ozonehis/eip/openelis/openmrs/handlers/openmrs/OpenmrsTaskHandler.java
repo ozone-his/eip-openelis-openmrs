@@ -7,7 +7,6 @@
  */
 package com.ozonehis.eip.openelis.openmrs.handlers.openmrs;
 
-import ca.uhn.fhir.context.FhirContext;
 import com.ozonehis.eip.openelis.openmrs.Constants;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,7 +20,6 @@ import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Reference;
-import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.hl7.fhir.r4.model.Task;
 import org.springframework.stereotype.Component;
@@ -32,20 +30,15 @@ import org.springframework.stereotype.Component;
 public class OpenmrsTaskHandler {
 
     public Task sendTask(ProducerTemplate producerTemplate, Task task) {
-        String response = producerTemplate.requestBody("direct:openmrs-create-resource-route", task, String.class);
-        FhirContext ctx = FhirContext.forR4();
-        Task savedTask = ctx.newJsonParser().parseResource(Task.class, response);
-        return savedTask;
+
+        return producerTemplate.requestBody("direct:openmrs-create-resource-route", task, Task.class);
     }
 
     public Task updateTask(ProducerTemplate producerTemplate, Task task, String taskID) {
         Map<String, Object> headers = new HashMap<>();
         headers.put(Constants.HEADER_TASK_ID, taskID);
-        String response =
-                producerTemplate.requestBodyAndHeaders("direct:openmrs-update-task-route", task, headers, String.class);
-        FhirContext ctx = FhirContext.forR4();
-        Task updatedTask = ctx.newJsonParser().parseResource(Task.class, response);
-        return updatedTask;
+
+        return producerTemplate.requestBodyAndHeaders("direct:openmrs-update-task-route", task, headers, Task.class);
     }
 
     public Task markTaskRejected(Task task) {
@@ -71,21 +64,15 @@ public class OpenmrsTaskHandler {
     public Task getTaskByServiceRequestID(ProducerTemplate producerTemplate, String serviceRequestID) {
         Map<String, Object> headers = new HashMap<>();
         headers.put(Constants.HEADER_SERVICE_REQUEST_ID, serviceRequestID);
-        String response =
-                producerTemplate.requestBodyAndHeaders("direct:openmrs-get-task-route", null, headers, String.class);
-        log.info("Openmrs: getTaskByServiceRequestID {}", response);
-        FhirContext ctx = FhirContext.forR4();
-        Bundle bundle = ctx.newJsonParser().parseResource(Bundle.class, response);
-        List<Bundle.BundleEntryComponent> entries = bundle.getEntry();
+        Bundle bundle =
+                producerTemplate.requestBodyAndHeaders("direct:openmrs-get-task-route", null, headers, Bundle.class);
 
-        Task task = null;
-        for (Bundle.BundleEntryComponent entry : entries) {
-            Resource resource = entry.getResource();
-            if (resource instanceof Task) {
-                task = (Task) resource;
-            }
-        }
-        return task;
+        return bundle.getEntry().stream()
+                .map(Bundle.BundleEntryComponent::getResource)
+                .filter(Task.class::isInstance)
+                .map(Task.class::cast)
+                .findFirst()
+                .orElse(null);
     }
 
     public void deleteTask(ProducerTemplate producerTemplate, String taskID) {

@@ -7,7 +7,6 @@
  */
 package com.ozonehis.eip.openelis.openmrs.handlers.openelis;
 
-import ca.uhn.fhir.context.FhirContext;
 import com.ozonehis.eip.openelis.openmrs.Constants;
 import java.util.HashMap;
 import java.util.Map;
@@ -26,12 +25,8 @@ public class OpenelisDiagnosticReportHandler {
             ProducerTemplate producerTemplate, String diagnosticReportID) {
         Map<String, Object> headers = new HashMap<>();
         headers.put(Constants.HEADER_DIAGNOSTIC_REPORT_ID, diagnosticReportID);
-        String response = producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-get-diagnostic-report-route", null, headers, String.class);
-        log.info("getDiagnosticReportByDiagnosticReportID: response {}", response);
-        FhirContext ctx = FhirContext.forR4();
 
-        DiagnosticReport fetchedDiagnosticReport = ctx.newJsonParser().parseResource(DiagnosticReport.class, response);
-        return fetchedDiagnosticReport;
+        return producerTemplate.requestBodyAndHeaders(
+                "direct:openelis-get-diagnostic-report-route", null, headers, DiagnosticReport.class);
     }
 }

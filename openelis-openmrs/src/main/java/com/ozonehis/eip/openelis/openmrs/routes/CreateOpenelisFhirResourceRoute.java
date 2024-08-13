@@ -24,9 +24,6 @@ public class CreateOpenelisFhirResourceRoute extends RouteBuilder {
                 .convertBodyTo(String.class)
                 .log("Creating resource ${body}")
                 .to("openelisfhir://update/resource?inBody=resourceAsString")
-                .marshal().fhirJson("R4")
-                .convertBodyTo(String.class)
-                .log("Created resource ${body}")
                 .end();
         // spotless:on
     }

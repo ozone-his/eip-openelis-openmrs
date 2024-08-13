@@ -8,20 +8,13 @@
 package com.ozonehis.eip.openelis.openmrs.routes.openmrsFhirServiceRequest;
 
 import com.ozonehis.eip.openelis.openmrs.Constants;
-import com.ozonehis.eip.openelis.openmrs.client.OpenmrsFhirClient;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.http.base.HttpOperationFailedException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class GetOpenmrsFhirServiceRequestRoute extends RouteBuilder {
-
-    @Autowired
-    private OpenmrsFhirClient openmrsFhirClient;
-
-    public static final String GET_ENDPOINT = "/ServiceRequest/";
 
     @Override
     public void configure() {
@@ -34,11 +27,10 @@ public class GetOpenmrsFhirServiceRequestRoute extends RouteBuilder {
                 .log(LoggingLevel.INFO, "ServiceRequest is gone/deleted error: ${exception.message}")
                 .setBody(simple("ServiceRequest is gone/deleted error: ${exception.message}"))
             .end()
-            .setHeader(Constants.CAMEL_HTTP_METHOD, constant(Constants.GET))
-            .setHeader(Constants.CONTENT_TYPE, constant(Constants.APPLICATION_JSON))
-            .setHeader(Constants.AUTHORIZATION, constant(openmrsFhirClient.authHeader()))
-            .toD(openmrsFhirClient.getOpenmrsFhirBaseUrl() + GET_ENDPOINT + "${header."
-                        + Constants.HEADER_SERVICE_REQUEST_ID + "}")
+                .toD("fhir:read/resourceById?resourceClass=ServiceRequest&stringId=" + "${header." + Constants.HEADER_SERVICE_REQUEST_ID + "}")
+                .marshal()
+                .fhirJson("R4")
+                .convertBodyTo(String.class)
                 .end();
         // spotless:on
     }

@@ -7,7 +7,6 @@
  */
 package com.ozonehis.eip.openelis.openmrs.handlers.openmrs;
 
-import ca.uhn.fhir.context.FhirContext;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
@@ -20,11 +19,7 @@ import org.springframework.stereotype.Component;
 public class OpenmrsObservationHandler {
 
     public Observation sendObservation(ProducerTemplate producerTemplate, Observation observation) {
-        String response =
-                producerTemplate.requestBody("direct:openmrs-create-resource-route", observation, String.class);
-        log.info("sendObservation: OpenMRS saved Observation response {}", response);
-        FhirContext ctx = FhirContext.forR4();
-        Observation savedObservation = ctx.newJsonParser().parseResource(Observation.class, response);
-        return savedObservation;
+
+        return producerTemplate.requestBody("direct:openmrs-create-resource-route", observation, Observation.class);
     }
 }
