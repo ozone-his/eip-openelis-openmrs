@@ -75,13 +75,11 @@ public class OpenmrsTaskHandler {
                 .orElse(null);
     }
 
-    public void deleteTask(ProducerTemplate producerTemplate, String taskID) {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put(Constants.HEADER_TASK_ID, taskID);
-        String response =
-                producerTemplate.requestBodyAndHeaders("direct:openmrs-delete-task-route", null, headers, String.class);
-
-        log.info("Openmrs: deleteTask response {}", response);
+    public void rejectTaskByServiceRequestID(ProducerTemplate producerTemplate, String serviceRequestID) {
+        Task task = getTaskByServiceRequestID(producerTemplate, serviceRequestID);
+        if (doesTaskExists(task)) {
+            updateTask(producerTemplate, markTaskRejected(task), task.getIdPart());
+        }
     }
 
     public Task buildTask(ServiceRequest serviceRequest) {

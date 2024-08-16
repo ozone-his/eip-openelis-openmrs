@@ -84,13 +84,7 @@ public class TaskProcessor implements Processor {
                         openmrsTask.getBasedOn().get(0).getReference();
                 ServiceRequest openmrsServiceRequest = openmrsServiceRequestHandler.getServiceRequestByID(
                         producerTemplate, taskBasedOnServiceRequestID);
-                if (openmrsServiceRequest.getStatus() == ServiceRequest.ServiceRequestStatus.REVOKED) {
-                    openmrsTaskHandler.updateTask(
-                            producerTemplate,
-                            openmrsTaskHandler.markTaskRejected(openmrsTask),
-                            openmrsTask.getIdPart());
-                    // TODO: Cancel Task and ServiceRequest in OpenELIS
-                } else {
+                if (openmrsServiceRequest.getStatus() != ServiceRequest.ServiceRequestStatus.REVOKED) {
                     if (openmrsTask.getBasedOn() == null
                             || openmrsTask.getBasedOn().isEmpty()) {
                         continue;
@@ -125,13 +119,14 @@ public class TaskProcessor implements Processor {
 
                                     Observation savedOpenmrsObservation = openmrsObservationHandler.sendObservation(
                                             producerTemplate,
-                                            buildOpenmrsObservation(openmrsServiceRequest, openelisObservation));
+                                            openmrsObservationHandler.buildObservation(
+                                                    openmrsServiceRequest, openelisObservation));
                                     observationUuids.add(savedOpenmrsObservation.getIdPart());
                                 }
                                 DiagnosticReport savedOpenmrsDiagnosticReport =
                                         openmrsDiagnosticReportHandler.sendDiagnosticReport(
                                                 producerTemplate,
-                                                buildOpenmrsDiagnosticReport(
+                                                openmrsDiagnosticReportHandler.buildDiagnosticReport(
                                                         openmrsServiceRequest,
                                                         observationUuids,
                                                         openelisDiagnosticReport));
@@ -147,46 +142,5 @@ public class TaskProcessor implements Processor {
         } catch (Exception e) {
             throw new CamelExecutionException("Error processing Task", exchange, e);
         }
-    }
-
-    private Observation buildOpenmrsObservation(ServiceRequest openmrsServiceRequest, Observation openelisObservation) {
-        Observation openmrsObservation = new Observation();
-
-        openmrsObservation
-                .addBasedOn()
-                .setReference(openmrsServiceRequest.getIdPart())
-                .setType("ServiceRequest");
-        openmrsObservation.setStatus(Observation.ObservationStatus.FINAL);
-        openmrsObservation.setCode(openelisObservation.getCode());
-        openmrsObservation.setSubject(openmrsServiceRequest.getSubject());
-        openmrsObservation.setEffective(openelisObservation.getEffective());
-        openmrsObservation.setIssued(openelisObservation.getIssued());
-        openmrsObservation.setValue(openelisObservation.getValue());
-        openmrsObservation.setReferenceRange(openelisObservation.getReferenceRange());
-
-        return openmrsObservation;
-    }
-
-    private DiagnosticReport buildOpenmrsDiagnosticReport(
-            ServiceRequest openmrsServiceRequest,
-            ArrayList<String> observationUuids,
-            DiagnosticReport openelisDiagnosticReport) {
-        DiagnosticReport openmrsDiagnosticReport = new DiagnosticReport();
-
-        openmrsDiagnosticReport
-                .addBasedOn()
-                .setReference(openmrsServiceRequest.getIdPart())
-                .setType("ServiceRequest");
-        openmrsDiagnosticReport.setStatus(DiagnosticReport.DiagnosticReportStatus.FINAL);
-        openmrsDiagnosticReport.setCode(openelisDiagnosticReport.getCode());
-        openmrsDiagnosticReport.setSubject(openmrsServiceRequest.getSubject());
-
-        List<Reference> referenceList = new ArrayList<>();
-        for (String observationUuid : observationUuids) {
-            referenceList.add(new Reference().setReference("Observation/" + observationUuid));
-        }
-        openmrsDiagnosticReport.setResult(referenceList);
-
-        return openmrsDiagnosticReport;
     }
 }

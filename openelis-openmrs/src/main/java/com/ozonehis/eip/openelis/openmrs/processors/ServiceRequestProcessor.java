@@ -104,11 +104,11 @@ public class ServiceRequestProcessor implements Processor {
 
                     } else {
                         // Executed when MODIFY option is selected in OpenMRS
-                        cancelServiceRequest(producerTemplate, serviceRequest);
+                        cancelOpenelisLabOrder(producerTemplate, serviceRequest.getIdPart());
                     }
                 } else if ("d".equals(eventType)) {
                     // Executed when DISCONTINUE option is selected in OpenMRS
-                    cancelServiceRequest(producerTemplate, serviceRequest);
+                    cancelOpenelisLabOrder(producerTemplate, serviceRequest.getIdPart());
                 } else {
                     throw new IllegalArgumentException("Unsupported event type: " + eventType);
                 }
@@ -118,20 +118,15 @@ public class ServiceRequestProcessor implements Processor {
         }
     }
 
-    private void cancelServiceRequest(ProducerTemplate producerTemplate, ServiceRequest openmrsServiceRequest) {
-        // Cancel OpenELIS Task and then cancel OpenELIS ServiceRequest
-        Task openelisTask =
-                openelisTaskHandler.getTaskByServiceRequestID(producerTemplate, openmrsServiceRequest.getIdPart());
-        if (openelisTaskHandler.doesTaskExists(openelisTask)) {
+    private void cancelOpenelisLabOrder(ProducerTemplate producerTemplate, String serviceRequestID) {
+        // Delete OpenELIS Task and then Delete OpenELIS ServiceRequest
+        Task openelisTask = openelisTaskHandler.getTaskByServiceRequestID(producerTemplate, serviceRequestID);
+        if (openelisTaskHandler.doesTaskExists(openelisTask) && openelisTask.getStatus() == Task.TaskStatus.REQUESTED) {
             openelisTaskHandler.deleteTask(producerTemplate, openelisTask.getIdPart());
-            openelisServiceRequestHandler.deleteServiceRequest(producerTemplate, openmrsServiceRequest.getIdPart());
+            openelisServiceRequestHandler.deleteServiceRequest(producerTemplate, serviceRequestID);
         }
 
-        // Cancel OpenMRS Task
-        Task openmrsTask =
-                openmrsTaskHandler.getTaskByServiceRequestID(producerTemplate, openmrsServiceRequest.getIdPart());
-        if (openmrsTaskHandler.doesTaskExists(openmrsTask)) {
-            openmrsTaskHandler.deleteTask(producerTemplate, openmrsTask.getIdPart());
-        }
+        // Reject OpenMRS Task
+        openmrsTaskHandler.rejectTaskByServiceRequestID(producerTemplate, serviceRequestID);
     }
 }
