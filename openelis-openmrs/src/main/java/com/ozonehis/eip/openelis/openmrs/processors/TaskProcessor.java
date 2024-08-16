@@ -85,53 +85,14 @@ public class TaskProcessor implements Processor {
                 ServiceRequest openmrsServiceRequest = openmrsServiceRequestHandler.getServiceRequestByID(
                         producerTemplate, taskBasedOnServiceRequestID);
                 if (openmrsServiceRequest.getStatus() != ServiceRequest.ServiceRequestStatus.REVOKED) {
-                    if (openmrsTask.getBasedOn() == null
-                            || openmrsTask.getBasedOn().isEmpty()) {
-                        continue;
-                    }
 
                     Task openelisTask = openelisTaskHandler.getTaskByServiceRequestID(
                             producerTemplate, taskBasedOnServiceRequestID);
 
                     if (openelisTask.getStatus() == Task.TaskStatus.COMPLETED
                             && openmrsTask.getStatus() != Task.TaskStatus.COMPLETED) {
-                        for (Task.TaskOutputComponent taskOutputComponent : openelisTask.getOutput()) {
-                            Type value = taskOutputComponent.getValue();
-                            if (value instanceof Reference) {
-                                Reference reference = (Reference) value;
-                                String openelisDiagnosticReportID =
-                                        reference.getReference().split("/")[1];
-                                DiagnosticReport openelisDiagnosticReport =
-                                        openelisDiagnosticReportHandler.getDiagnosticReportByDiagnosticReportID(
-                                                producerTemplate, openelisDiagnosticReportID);
+                        updateLabOrderResultsInOpenmrs(producerTemplate, openelisTask, openmrsServiceRequest);
 
-                                if (openelisDiagnosticReport == null
-                                        || openelisDiagnosticReport.getId().isEmpty()) {
-                                    continue;
-                                }
-                                ArrayList<String> observationUuids = new ArrayList<>();
-                                for (Reference observationReference : openelisDiagnosticReport.getResult()) {
-                                    String openelisObservationID =
-                                            observationReference.getReference().split("/")[1];
-                                    Observation openelisObservation =
-                                            openelisObservationHandler.getObservationByObservationID(
-                                                    producerTemplate, openelisObservationID);
-
-                                    Observation savedOpenmrsObservation = openmrsObservationHandler.sendObservation(
-                                            producerTemplate,
-                                            openmrsObservationHandler.buildObservation(
-                                                    openmrsServiceRequest, openelisObservation));
-                                    observationUuids.add(savedOpenmrsObservation.getIdPart());
-                                }
-                                DiagnosticReport savedOpenmrsDiagnosticReport =
-                                        openmrsDiagnosticReportHandler.sendDiagnosticReport(
-                                                producerTemplate,
-                                                openmrsDiagnosticReportHandler.buildDiagnosticReport(
-                                                        openmrsServiceRequest,
-                                                        observationUuids,
-                                                        openelisDiagnosticReport));
-                            }
-                        }
                         openmrsTaskHandler.updateTask(
                                 producerTemplate,
                                 openmrsTaskHandler.markTaskCompleted(openmrsTask),
@@ -141,6 +102,40 @@ public class TaskProcessor implements Processor {
             }
         } catch (Exception e) {
             throw new CamelExecutionException("Error processing Task", exchange, e);
+        }
+    }
+
+    private void updateLabOrderResultsInOpenmrs(
+            ProducerTemplate producerTemplate, Task openelisTask, ServiceRequest openmrsServiceRequest) {
+        for (Task.TaskOutputComponent taskOutputComponent : openelisTask.getOutput()) {
+            Type value = taskOutputComponent.getValue();
+            if (value instanceof Reference reference) {
+                String openelisDiagnosticReportID = reference.getReference().split("/")[1];
+                DiagnosticReport openelisDiagnosticReport =
+                        openelisDiagnosticReportHandler.getDiagnosticReportByDiagnosticReportID(
+                                producerTemplate, openelisDiagnosticReportID);
+
+                if (openelisDiagnosticReport == null
+                        || openelisDiagnosticReport.getId().isEmpty()) {
+                    continue;
+                }
+                ArrayList<String> observationUuids = new ArrayList<>();
+                for (Reference observationReference : openelisDiagnosticReport.getResult()) {
+                    String openelisObservationID =
+                            observationReference.getReference().split("/")[1];
+                    Observation openelisObservation = openelisObservationHandler.getObservationByObservationID(
+                            producerTemplate, openelisObservationID);
+
+                    Observation savedOpenmrsObservation = openmrsObservationHandler.sendObservation(
+                            producerTemplate,
+                            openmrsObservationHandler.buildObservation(openmrsServiceRequest, openelisObservation));
+                    observationUuids.add(savedOpenmrsObservation.getIdPart());
+                }
+                openmrsDiagnosticReportHandler.sendDiagnosticReport(
+                        producerTemplate,
+                        openmrsDiagnosticReportHandler.buildDiagnosticReport(
+                                openmrsServiceRequest, observationUuids, openelisDiagnosticReport));
+            }
         }
     }
 }
