@@ -34,6 +34,8 @@ public class Constants {
 
     public static final String HEADER_PRACTITIONER_ID = "openelis.resource.practitioner.id";
 
+    public static final String HEADER_LOCATION_ID = "openelis.resource.location.id";
+
     public static final String HEADER_TASK_ID = "openelis.resource.task.id";
 
     public static final String HEADER_DIAGNOSTIC_REPORT_ID = "openelis.resource.diagnostic.report.id";

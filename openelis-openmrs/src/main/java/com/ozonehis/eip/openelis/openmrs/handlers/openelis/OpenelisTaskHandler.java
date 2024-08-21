@@ -18,6 +18,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.ServiceRequest;
@@ -76,7 +77,7 @@ public class OpenelisTaskHandler {
         return task != null && task.getId() != null && !task.getId().isEmpty() && task.getStatus() != null;
     }
 
-    public Task buildTask(ServiceRequest serviceRequest) {
+    public Task buildTask(ServiceRequest serviceRequest, Encounter encounter) {
         Task openelisTask = new Task();
         String taskUuid = UUID.randomUUID().toString();
         openelisTask.setId(taskUuid);
@@ -97,6 +98,8 @@ public class OpenelisTaskHandler {
         openelisTask.setStatus(Task.TaskStatus.REQUESTED);
         openelisTask.setIntent(Task.TaskIntent.ORDER);
         openelisTask.setPriority(Task.TaskPriority.ROUTINE);
+
+        openelisTask.setLocation(encounter.getLocationFirstRep().getLocation());
 
         openelisTask.setFor(
                 new Reference().setReference(serviceRequest.getSubject().getReference()));

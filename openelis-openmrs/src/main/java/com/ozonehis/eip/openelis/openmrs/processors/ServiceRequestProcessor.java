@@ -7,6 +7,7 @@
  */
 package com.ozonehis.eip.openelis.openmrs.processors;
 
+import com.ozonehis.eip.openelis.openmrs.handlers.openelis.OpenelisLocationHandler;
 import com.ozonehis.eip.openelis.openmrs.handlers.openelis.OpenelisPatientHandler;
 import com.ozonehis.eip.openelis.openmrs.handlers.openelis.OpenelisPractitionerHandler;
 import com.ozonehis.eip.openelis.openmrs.handlers.openelis.OpenelisServiceRequestHandler;
@@ -48,6 +49,9 @@ public class ServiceRequestProcessor implements Processor {
 
     @Autowired
     private OpenmrsTaskHandler openmrsTaskHandler;
+
+    @Autowired
+    private OpenelisLocationHandler openelisLocationHandler;
 
     @Override
     public void process(Exchange exchange) {
@@ -99,7 +103,12 @@ public class ServiceRequestProcessor implements Processor {
                         openelisPatientHandler.sendPatient(
                                 producerTemplate, openelisPatientHandler.buildPatient(patient));
                         openelisServiceRequestHandler.sendServiceRequest(producerTemplate, serviceRequest);
-                        openelisTaskHandler.sendTask(producerTemplate, openelisTaskHandler.buildTask(serviceRequest));
+                        openelisLocationHandler.sendLocation(
+                                producerTemplate,
+                                openelisLocationHandler.buildLocation(
+                                        encounter.getLocationFirstRep().getLocation()));
+                        openelisTaskHandler.sendTask(
+                                producerTemplate, openelisTaskHandler.buildTask(serviceRequest, encounter));
                         openmrsTaskHandler.sendTask(producerTemplate, openmrsTaskHandler.buildTask(serviceRequest));
 
                     } else {
