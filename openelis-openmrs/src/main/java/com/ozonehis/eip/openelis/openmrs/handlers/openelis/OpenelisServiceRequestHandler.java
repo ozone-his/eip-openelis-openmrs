@@ -7,13 +7,15 @@
  */
 package com.ozonehis.eip.openelis.openmrs.handlers.openelis;
 
-import com.ozonehis.eip.openelis.openmrs.Constants;
-import java.util.HashMap;
-import java.util.Map;
+import ca.uhn.fhir.rest.api.MethodOutcome;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
+import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.ServiceRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -21,20 +23,28 @@ import org.springframework.stereotype.Component;
 @Component
 public class OpenelisServiceRequestHandler {
 
-    public ServiceRequest sendServiceRequest(ProducerTemplate producerTemplate, ServiceRequest serviceRequest) {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put(Constants.HEADER_SERVICE_REQUEST_ID, serviceRequest.getIdPart());
+    @Autowired
+    @Qualifier("openelisFhirClient") private IGenericClient openelisFhirClient;
 
-        return producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-create-resource-route", serviceRequest, headers, ServiceRequest.class);
+    public ServiceRequest sendServiceRequest(ProducerTemplate producerTemplate, ServiceRequest serviceRequest) {
+        MethodOutcome methodOutcome = openelisFhirClient
+                .update()
+                .resource(serviceRequest)
+                .prettyPrint()
+                .encodedJson()
+                .execute();
+
+        log.debug("OpenelisServiceRequestHandler: ServiceRequest created {}", methodOutcome.getCreated());
+
+        return (ServiceRequest) methodOutcome.getResource();
     }
 
     public void deleteServiceRequest(ProducerTemplate producerTemplate, String serviceRequestID) {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put(Constants.HEADER_SERVICE_REQUEST_ID, serviceRequestID);
-        String response = producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-delete-service-request-route", null, headers, String.class);
+        MethodOutcome methodOutcome = openelisFhirClient
+                .delete()
+                .resourceById(new IdType("ServiceRequest", serviceRequestID))
+                .execute();
 
-        log.info("Openelis: deleteServiceRequest response {}", response);
+        log.debug("OpenelisServiceRequestHandler: deleteServiceRequest {}", methodOutcome.getCreated());
     }
 }

@@ -7,16 +7,17 @@
  */
 package com.ozonehis.eip.openelis.openmrs.handlers.openelis;
 
-import com.ozonehis.eip.openelis.openmrs.Constants;
+import ca.uhn.fhir.rest.api.MethodOutcome;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Patient;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -24,11 +25,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class OpenelisPatientHandler {
 
+    @Autowired
+    @Qualifier("openelisFhirClient") private IGenericClient openelisFhirClient;
+
     public Patient sendPatient(ProducerTemplate producerTemplate, Patient patient) {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put(Constants.HEADER_PATIENT_ID, patient.getIdPart());
-        return producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-create-resource-route", patient, headers, Patient.class);
+        MethodOutcome methodOutcome = openelisFhirClient
+                .update()
+                .resource(patient)
+                .prettyPrint()
+                .encodedJson()
+                .execute();
+
+        log.debug("OpenelisPatientHandler: Patient created {}", methodOutcome.getCreated());
+
+        return (Patient) methodOutcome.getResource();
     }
 
     public Patient buildPatient(Patient patient) {

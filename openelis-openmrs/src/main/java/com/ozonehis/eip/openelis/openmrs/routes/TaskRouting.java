@@ -30,7 +30,7 @@ public class TaskRouting extends RouteBuilder {
         getContext().getTypeConverterRegistry().addTypeConverters(fhirResourceConverter);
         // spotless:off
         from("scheduler:taskUpdate?initialDelay=10000&delay=10000")
-            .routeId("poll-senaite")
+            .routeId("poll-openelis")
             .log(LoggingLevel.INFO, "Polling Tasks started...")
             .to("direct:openmrs-get-task-by-status-route")
             .process(taskProcessor)

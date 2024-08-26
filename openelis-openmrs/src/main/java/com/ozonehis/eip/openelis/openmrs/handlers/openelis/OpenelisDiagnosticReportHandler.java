@@ -7,13 +7,13 @@
  */
 package com.ozonehis.eip.openelis.openmrs.handlers.openelis;
 
-import com.ozonehis.eip.openelis.openmrs.Constants;
-import java.util.HashMap;
-import java.util.Map;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.DiagnosticReport;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -21,12 +21,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class OpenelisDiagnosticReportHandler {
 
+    @Autowired
+    @Qualifier("openelisFhirClient") private IGenericClient openelisFhirClient;
+
     public DiagnosticReport getDiagnosticReportByDiagnosticReportID(
             ProducerTemplate producerTemplate, String diagnosticReportID) {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put(Constants.HEADER_DIAGNOSTIC_REPORT_ID, diagnosticReportID);
+        DiagnosticReport diagnosticReport = openelisFhirClient
+                .read()
+                .resource(DiagnosticReport.class)
+                .withId(diagnosticReportID)
+                .execute();
 
-        return producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-get-diagnostic-report-route", null, headers, DiagnosticReport.class);
+        log.debug(
+                "OpenelisDiagnosticReportHandler: DiagnosticReport getDiagnosticReportByDiagnosticReportID {}",
+                diagnosticReport.getId());
+        return diagnosticReport;
     }
 }

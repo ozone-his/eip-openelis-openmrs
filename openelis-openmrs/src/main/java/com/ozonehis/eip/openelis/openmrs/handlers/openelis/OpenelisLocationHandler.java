@@ -7,14 +7,15 @@
  */
 package com.ozonehis.eip.openelis.openmrs.handlers.openelis;
 
-import com.ozonehis.eip.openelis.openmrs.Constants;
-import java.util.HashMap;
-import java.util.Map;
+import ca.uhn.fhir.rest.api.MethodOutcome;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Location;
 import org.hl7.fhir.r4.model.Reference;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -22,12 +23,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class OpenelisLocationHandler {
 
-    public Location sendLocation(ProducerTemplate producerTemplate, Location location) {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put(Constants.HEADER_LOCATION_ID, location.getIdPart());
+    @Autowired
+    @Qualifier("openelisFhirClient") private IGenericClient openelisFhirClient;
 
-        return producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-create-resource-route", location, headers, Location.class);
+    public Location sendLocation(ProducerTemplate producerTemplate, Location location) {
+        MethodOutcome methodOutcome = openelisFhirClient
+                .update()
+                .resource(location)
+                .prettyPrint()
+                .encodedJson()
+                .execute();
+
+        log.debug("OpenelisLocationHandler: Location created {}", methodOutcome.getCreated());
+        return (Location) methodOutcome.getResource();
     }
 
     public Location buildLocation(Reference locationReference) {

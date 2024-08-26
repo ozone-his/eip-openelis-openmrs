@@ -7,12 +7,11 @@
  */
 package com.ozonehis.eip.openelis.openmrs.handlers.openmrs;
 
-import com.ozonehis.eip.openelis.openmrs.Constants;
+import ca.uhn.fhir.rest.api.MethodOutcome;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +21,8 @@ import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.hl7.fhir.r4.model.Task;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -29,16 +30,26 @@ import org.springframework.stereotype.Component;
 @Component
 public class OpenmrsTaskHandler {
 
-    public Task sendTask(ProducerTemplate producerTemplate, Task task) {
+    @Autowired
+    @Qualifier("openmrsFhirClient") private IGenericClient openmrsFhirClient;
 
-        return producerTemplate.requestBody("direct:openmrs-create-resource-route", task, Task.class);
+    public void sendTask(ProducerTemplate producerTemplate, Task task) {
+        MethodOutcome methodOutcome = openmrsFhirClient
+                .create()
+                .resource(task)
+                .prettyPrint()
+                .encodedJson()
+                .execute();
+
+        log.debug("OpenmrsTaskHandler: Task created {}", methodOutcome.getCreated());
     }
 
     public Task updateTask(ProducerTemplate producerTemplate, Task task, String taskID) {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put(Constants.HEADER_TASK_ID, taskID);
+        MethodOutcome methodOutcome = openmrsFhirClient.update().resource(task).execute();
 
-        return producerTemplate.requestBodyAndHeaders("direct:openmrs-update-task-route", task, headers, Task.class);
+        log.debug("OpenmrsTaskHandler: Task updateTask {}", methodOutcome.getCreated());
+
+        return (Task) methodOutcome.getResource();
     }
 
     public Task markTaskRejected(Task task) {
@@ -62,15 +73,22 @@ public class OpenmrsTaskHandler {
     }
 
     public Task getTaskByServiceRequestID(ProducerTemplate producerTemplate, String serviceRequestID) {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put(Constants.HEADER_SERVICE_REQUEST_ID, serviceRequestID);
-        Bundle bundle =
-                producerTemplate.requestBodyAndHeaders("direct:openmrs-get-task-route", null, headers, Bundle.class);
+        Bundle bundle = openmrsFhirClient
+                .search()
+                .forResource(Task.class)
+                .returnBundle(Bundle.class)
+                .execute();
+
+        log.info("OpenmrsTaskHandler: Task getTaskByServiceRequestID {}", bundle.getId());
 
         return bundle.getEntry().stream()
                 .map(Bundle.BundleEntryComponent::getResource)
                 .filter(Task.class::isInstance)
                 .map(Task.class::cast)
+                .filter(task -> task.getBasedOn()
+                        .get(0)
+                        .getReference()
+                        .equals(serviceRequestID)) // TODO: Use client impl and don't fetch all Tasks
                 .findFirst()
                 .orElse(null);
     }

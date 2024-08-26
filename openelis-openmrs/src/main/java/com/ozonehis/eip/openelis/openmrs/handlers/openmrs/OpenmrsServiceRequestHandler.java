@@ -7,14 +7,13 @@
  */
 package com.ozonehis.eip.openelis.openmrs.handlers.openmrs;
 
-import ca.uhn.fhir.context.FhirContext;
-import com.ozonehis.eip.openelis.openmrs.Constants;
-import java.util.HashMap;
-import java.util.Map;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.ServiceRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -22,21 +21,33 @@ import org.springframework.stereotype.Component;
 @Component
 public class OpenmrsServiceRequestHandler {
 
-    public ServiceRequest getServiceRequestByID(ProducerTemplate producerTemplate, String serviceRequestID) {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put(Constants.HEADER_SERVICE_REQUEST_ID, serviceRequestID);
-        String response = producerTemplate.requestBodyAndHeaders(
-                "direct:openmrs-get-service-request-route", null, headers, String.class);
-        if (response.contains("gone/deleted")) {
-            // TODO: Can be moved to route as well
-            ServiceRequest deletedServiceRequestResponse = new ServiceRequest();
-            deletedServiceRequestResponse.setId((String) headers.get(Constants.HEADER_SERVICE_REQUEST_ID));
-            deletedServiceRequestResponse.setStatus(ServiceRequest.ServiceRequestStatus.REVOKED);
-            return deletedServiceRequestResponse;
-        }
-        FhirContext ctx = FhirContext.forR4();
-        ServiceRequest serviceRequestResponse = ctx.newJsonParser().parseResource(ServiceRequest.class, response);
+    @Autowired
+    @Qualifier("openmrsFhirClient") private IGenericClient openmrsFhirClient;
 
-        return serviceRequestResponse;
+    public ServiceRequest getServiceRequestByID(ProducerTemplate producerTemplate, String serviceRequestID) {
+        ServiceRequest serviceRequest = openmrsFhirClient
+                .read()
+                .resource(ServiceRequest.class)
+                .withId(serviceRequestID)
+                .execute();
+
+        // TODO: Check if ServiceRequest is cancelled or deleted
+        log.debug("ServiceRequestHandler: ServiceRequest getServiceRequestByID {}", serviceRequest.getId());
+        //        Map<String, Object> headers = new HashMap<>();
+        //        headers.put(Constants.HEADER_SERVICE_REQUEST_ID, serviceRequestID);
+        //        String response = producerTemplate.requestBodyAndHeaders(
+        //                "direct:openmrs-get-service-request-route", null, headers, String.class);
+        //        if (response.contains("gone/deleted")) {
+        //            // TODO: Can be moved to route as well
+        //            ServiceRequest deletedServiceRequestResponse = new ServiceRequest();
+        //            deletedServiceRequestResponse.setId((String) headers.get(Constants.HEADER_SERVICE_REQUEST_ID));
+        //            deletedServiceRequestResponse.setStatus(ServiceRequest.ServiceRequestStatus.REVOKED);
+        //            return deletedServiceRequestResponse;
+        //        }
+        //        FhirContext ctx = FhirContext.forR4();
+        //        ServiceRequest serviceRequestResponse = ctx.newJsonParser().parseResource(ServiceRequest.class,
+        // response);
+
+        return serviceRequest;
     }
 }

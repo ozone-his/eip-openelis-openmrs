@@ -7,13 +7,13 @@
  */
 package com.ozonehis.eip.openelis.openmrs.handlers.openelis;
 
-import com.ozonehis.eip.openelis.openmrs.Constants;
-import java.util.HashMap;
-import java.util.Map;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Observation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -21,11 +21,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class OpenelisObservationHandler {
 
-    public Observation getObservationByObservationID(ProducerTemplate producerTemplate, String observationID) {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put(Constants.HEADER_OBSERVATION_ID, observationID);
+    @Autowired
+    @Qualifier("openelisFhirClient") private IGenericClient openelisFhirClient;
 
-        return producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-get-observation-route", null, headers, Observation.class);
+    public Observation getObservationByObservationID(ProducerTemplate producerTemplate, String observationID) {
+        Observation observation = openelisFhirClient
+                .read()
+                .resource(Observation.class)
+                .withId(observationID)
+                .execute();
+
+        log.debug("OpenelisObservationHandler: Observation getObservationByObservationID {}", observation.getId());
+        return observation;
     }
 }

@@ -7,10 +7,9 @@
  */
 package com.ozonehis.eip.openelis.openmrs.handlers.openelis;
 
-import com.ozonehis.eip.openelis.openmrs.Constants;
+import ca.uhn.fhir.rest.api.MethodOutcome;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
@@ -18,6 +17,8 @@ import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Practitioner;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.hl7.fhir.r4.model.StringType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -25,12 +26,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class OpenelisPractitionerHandler {
 
-    public Practitioner sendPractitioner(ProducerTemplate producerTemplate, Practitioner practitioner) {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put(Constants.HEADER_PRACTITIONER_ID, practitioner.getIdPart());
+    @Autowired
+    @Qualifier("openelisFhirClient") private IGenericClient openelisFhirClient;
 
-        return producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-create-resource-route", practitioner, headers, Practitioner.class);
+    public Practitioner sendPractitioner(ProducerTemplate producerTemplate, Practitioner practitioner) {
+        MethodOutcome methodOutcome = openelisFhirClient
+                .update()
+                .resource(practitioner)
+                .prettyPrint()
+                .encodedJson()
+                .execute();
+
+        log.debug("OpenelisPractitionerHandler: Practitioner created {}", methodOutcome.getCreated());
+
+        return (Practitioner) methodOutcome.getResource();
     }
 
     public Practitioner buildPractitioner(ServiceRequest serviceRequest) {

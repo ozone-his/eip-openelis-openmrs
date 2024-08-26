@@ -7,22 +7,24 @@
  */
 package com.ozonehis.eip.openelis.openmrs.handlers.openelis;
 
-import com.ozonehis.eip.openelis.openmrs.Constants;
+import ca.uhn.fhir.rest.api.MethodOutcome;
+import ca.uhn.fhir.rest.client.api.IGenericClient;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Encounter;
+import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.hl7.fhir.r4.model.Task;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -30,47 +32,51 @@ import org.springframework.stereotype.Component;
 @Component
 public class OpenelisTaskHandler {
 
-    public Task sendTask(ProducerTemplate producerTemplate, Task task) {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put(Constants.HEADER_TASK_ID, task.getIdPart());
+    @Autowired
+    @Qualifier("openelisFhirClient") private IGenericClient openelisFhirClient;
 
-        return producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-create-resource-route", task, headers, Task.class);
+    public Task sendTask(ProducerTemplate producerTemplate, Task task) {
+        MethodOutcome methodOutcome = openelisFhirClient
+                .update()
+                .resource(task)
+                .prettyPrint()
+                .encodedJson()
+                .execute();
+
+        log.debug("OpenelisTaskHandler: Task created {}", methodOutcome.getCreated());
+
+        return (Task) methodOutcome.getResource();
     }
 
     public Task getTaskByServiceRequestID(ProducerTemplate producerTemplate, String serviceRequestID) {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put(Constants.HEADER_SERVICE_REQUEST_ID, serviceRequestID);
-        Bundle bundle =
-                producerTemplate.requestBodyAndHeaders("direct:openelis-get-task-route", null, headers, Bundle.class);
-        //        FhirContext ctx = FhirContext.forR4();
-        //        Bundle bundle = ctx.newJsonParser().parseResource(Bundle.class, response);
-        //        List<Bundle.BundleEntryComponent> entries = bundle.getEntry();
-        //
-        //        Task task = null;
-        //        for (Bundle.BundleEntryComponent entry : entries) {
-        //            Resource resource = entry.getResource();
-        //            if (resource instanceof Task) {
-        //                task = (Task) resource;
-        //                if (task.getStatus() == Task.TaskStatus.COMPLETED) { // TODO: Fix this hack
-        //                    break;
-        //                }
-        //            }
-        //        }
+        Bundle bundle = openelisFhirClient
+                .search()
+                .forResource(Task.class)
+                .returnBundle(Bundle.class)
+                .execute();
+
+        log.info("OpenelisTaskHandler: Task getTaskByServiceRequestID {}", bundle.getId());
+
         return bundle.getEntry().stream()
                 .map(Bundle.BundleEntryComponent::getResource)
                 .filter(Task.class::isInstance)
                 .map(Task.class::cast)
+                .filter(task -> task.getBasedOn()
+                        .get(0)
+                        .getReference()
+                        .equals("ServiceRequest/"
+                                + serviceRequestID)) // TODO: Use client impl and don't fetch all Tasks
                 .findFirst()
                 .orElse(null);
     }
 
     public void deleteTask(ProducerTemplate producerTemplate, String taskID) {
-        Map<String, Object> headers = new HashMap<>();
-        headers.put(Constants.HEADER_TASK_ID, taskID);
-        String response = producerTemplate.requestBodyAndHeaders(
-                "direct:openelis-delete-task-route", null, headers, String.class);
-        log.info("Openelis: deleteTask response {}", response);
+        MethodOutcome methodOutcome = openelisFhirClient
+                .delete()
+                .resourceById(new IdType("Task", taskID))
+                .execute();
+
+        log.debug("OpenelisServiceRequestHandler: deleteTask {}", methodOutcome.getCreated());
     }
 
     public boolean doesTaskExists(Task task) {

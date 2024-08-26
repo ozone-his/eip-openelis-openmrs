@@ -17,6 +17,8 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.component.fhir.FhirComponent;
 import org.apache.camel.component.fhir.FhirConfiguration;
 import org.apache.camel.spring.boot.CamelContextConfiguration;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -39,25 +41,24 @@ public class OpenelisCamelComponent {
     private String openelisFhirBaseUrl;
 
     @Bean
+    @Qualifier("openelisFhirClient") IGenericClient openelisFhirClient() {
+        IGenericClient client = FhirContext.forR4().newRestfulGenericClient(getOpenelisFhirBaseUrl() + "/fhir");
+        if (StringUtils.isNotBlank(getOpenelisUsername()) && StringUtils.isNotBlank(getOpenelisPassword())) {
+            client.registerInterceptor(new BasicAuthInterceptor(getOpenelisUsername(), getOpenelisPassword()));
+        }
+        return client;
+    }
+
+    @Bean
     CamelContextConfiguration openelisContextConfiguration() {
         return new CamelContextConfiguration() {
 
             @Override
             public void beforeApplicationStart(CamelContext camelContext) {
                 FhirConfiguration fhirConfiguration = new FhirConfiguration();
-                FhirContext ctx = FhirContext.forR4();
                 fhirConfiguration.setServerUrl(getOpenelisFhirBaseUrl());
-                IGenericClient client = ctx.newRestfulGenericClient(getOpenelisFhirBaseUrl() + "/fhir");
-
-                if (getOpenelisUsername() != null
-                        && !getOpenelisUsername().isBlank()
-                        && getOpenelisPassword() != null
-                        && !getOpenelisPassword().isBlank()) {
-                    client.registerInterceptor(new BasicAuthInterceptor(getOpenelisUsername(), getOpenelisPassword()));
-                }
-
-                fhirConfiguration.setClient(client);
-                fhirConfiguration.setFhirContext(ctx);
+                fhirConfiguration.setClient(openelisFhirClient());
+                fhirConfiguration.setFhirContext(FhirContext.forR4());
                 fhirConfiguration.setSummary("DATA");
 
                 FhirComponent openelisFhirComponent = new FhirComponent();
