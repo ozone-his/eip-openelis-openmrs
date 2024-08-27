@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.UUID;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Encounter;
 import org.hl7.fhir.r4.model.IdType;
@@ -35,7 +34,7 @@ public class OpenelisTaskHandler {
     @Autowired
     @Qualifier("openelisFhirClient") private IGenericClient openelisFhirClient;
 
-    public Task sendTask(ProducerTemplate producerTemplate, Task task) {
+    public Task sendTask(Task task) {
         MethodOutcome methodOutcome = openelisFhirClient
                 .update()
                 .resource(task)
@@ -48,7 +47,7 @@ public class OpenelisTaskHandler {
         return (Task) methodOutcome.getResource();
     }
 
-    public Task getTaskByServiceRequestID(ProducerTemplate producerTemplate, String serviceRequestID) {
+    public Task getTaskByServiceRequestID(String serviceRequestID) {
         Bundle bundle = openelisFhirClient
                 .search()
                 .forResource(Task.class)
@@ -70,7 +69,7 @@ public class OpenelisTaskHandler {
                 .orElse(null);
     }
 
-    public void deleteTask(ProducerTemplate producerTemplate, String taskID) {
+    public void deleteTask(String taskID) {
         MethodOutcome methodOutcome = openelisFhirClient
                 .delete()
                 .resourceById(new IdType("Task", taskID))

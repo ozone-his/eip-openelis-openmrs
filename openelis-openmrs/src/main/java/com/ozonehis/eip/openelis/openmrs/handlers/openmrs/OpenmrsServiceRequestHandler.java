@@ -10,7 +10,6 @@ package com.ozonehis.eip.openelis.openmrs.handlers.openmrs;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,7 +23,7 @@ public class OpenmrsServiceRequestHandler {
     @Autowired
     @Qualifier("openmrsFhirClient") private IGenericClient openmrsFhirClient;
 
-    public ServiceRequest getServiceRequestByID(ProducerTemplate producerTemplate, String serviceRequestID) {
+    public ServiceRequest getServiceRequestByID(String serviceRequestID) {
         ServiceRequest serviceRequest = openmrsFhirClient
                 .read()
                 .resource(ServiceRequest.class)

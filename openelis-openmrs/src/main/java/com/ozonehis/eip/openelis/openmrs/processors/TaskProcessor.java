@@ -82,21 +82,18 @@ public class TaskProcessor implements Processor {
                 }
                 String taskBasedOnServiceRequestID =
                         openmrsTask.getBasedOn().get(0).getReference();
-                ServiceRequest openmrsServiceRequest = openmrsServiceRequestHandler.getServiceRequestByID(
-                        producerTemplate, taskBasedOnServiceRequestID);
+                ServiceRequest openmrsServiceRequest =
+                        openmrsServiceRequestHandler.getServiceRequestByID(taskBasedOnServiceRequestID);
                 if (openmrsServiceRequest.getStatus() != ServiceRequest.ServiceRequestStatus.REVOKED) {
 
-                    Task openelisTask = openelisTaskHandler.getTaskByServiceRequestID(
-                            producerTemplate, taskBasedOnServiceRequestID);
+                    Task openelisTask = openelisTaskHandler.getTaskByServiceRequestID(taskBasedOnServiceRequestID);
 
                     if (openelisTask.getStatus() == Task.TaskStatus.COMPLETED
                             && openmrsTask.getStatus() != Task.TaskStatus.COMPLETED) {
-                        updateLabOrderResultsInOpenmrs(producerTemplate, openelisTask, openmrsServiceRequest);
+                        updateLabOrderResultsInOpenmrs(openelisTask, openmrsServiceRequest);
 
                         openmrsTaskHandler.updateTask(
-                                producerTemplate,
-                                openmrsTaskHandler.markTaskCompleted(openmrsTask),
-                                openmrsTask.getIdPart());
+                                openmrsTaskHandler.markTaskCompleted(openmrsTask), openmrsTask.getIdPart());
                     }
                 }
             }
@@ -105,15 +102,14 @@ public class TaskProcessor implements Processor {
         }
     }
 
-    private void updateLabOrderResultsInOpenmrs(
-            ProducerTemplate producerTemplate, Task openelisTask, ServiceRequest openmrsServiceRequest) {
+    private void updateLabOrderResultsInOpenmrs(Task openelisTask, ServiceRequest openmrsServiceRequest) {
         for (Task.TaskOutputComponent taskOutputComponent : openelisTask.getOutput()) {
             Type value = taskOutputComponent.getValue();
             if (value instanceof Reference reference) {
                 String openelisDiagnosticReportID = reference.getReference().split("/")[1];
                 DiagnosticReport openelisDiagnosticReport =
                         openelisDiagnosticReportHandler.getDiagnosticReportByDiagnosticReportID(
-                                producerTemplate, openelisDiagnosticReportID);
+                                openelisDiagnosticReportID);
 
                 if (openelisDiagnosticReport == null
                         || openelisDiagnosticReport.getId().isEmpty()) {
@@ -123,16 +119,14 @@ public class TaskProcessor implements Processor {
                 for (Reference observationReference : openelisDiagnosticReport.getResult()) {
                     String openelisObservationID =
                             observationReference.getReference().split("/")[1];
-                    Observation openelisObservation = openelisObservationHandler.getObservationByObservationID(
-                            producerTemplate, openelisObservationID);
+                    Observation openelisObservation =
+                            openelisObservationHandler.getObservationByObservationID(openelisObservationID);
 
                     Observation savedOpenmrsObservation = openmrsObservationHandler.sendObservation(
-                            producerTemplate,
                             openmrsObservationHandler.buildObservation(openmrsServiceRequest, openelisObservation));
                     observationUuids.add(savedOpenmrsObservation.getIdPart());
                 }
                 openmrsDiagnosticReportHandler.sendDiagnosticReport(
-                        producerTemplate,
                         openmrsDiagnosticReportHandler.buildDiagnosticReport(
                                 openmrsServiceRequest, observationUuids, openelisDiagnosticReport));
             }

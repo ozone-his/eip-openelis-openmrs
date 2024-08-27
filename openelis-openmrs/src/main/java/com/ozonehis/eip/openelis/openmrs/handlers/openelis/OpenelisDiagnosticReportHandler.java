@@ -10,7 +10,6 @@ package com.ozonehis.eip.openelis.openmrs.handlers.openelis;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.DiagnosticReport;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,8 +23,7 @@ public class OpenelisDiagnosticReportHandler {
     @Autowired
     @Qualifier("openelisFhirClient") private IGenericClient openelisFhirClient;
 
-    public DiagnosticReport getDiagnosticReportByDiagnosticReportID(
-            ProducerTemplate producerTemplate, String diagnosticReportID) {
+    public DiagnosticReport getDiagnosticReportByDiagnosticReportID(String diagnosticReportID) {
         DiagnosticReport diagnosticReport = openelisFhirClient
                 .read()
                 .resource(DiagnosticReport.class)

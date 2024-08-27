@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.DiagnosticReport;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.ServiceRequest;
@@ -29,7 +28,7 @@ public class OpenmrsDiagnosticReportHandler {
     @Autowired
     @Qualifier("openmrsFhirClient") private IGenericClient openmrsFhirClient;
 
-    public void sendDiagnosticReport(ProducerTemplate producerTemplate, DiagnosticReport diagnosticReport) {
+    public void sendDiagnosticReport(DiagnosticReport diagnosticReport) {
         MethodOutcome methodOutcome = openmrsFhirClient
                 .create()
                 .resource(diagnosticReport)

@@ -12,7 +12,6 @@ import ca.uhn.fhir.rest.client.api.IGenericClient;
 import java.util.Collections;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Practitioner;
 import org.hl7.fhir.r4.model.ServiceRequest;
@@ -29,7 +28,7 @@ public class OpenelisPractitionerHandler {
     @Autowired
     @Qualifier("openelisFhirClient") private IGenericClient openelisFhirClient;
 
-    public Practitioner sendPractitioner(ProducerTemplate producerTemplate, Practitioner practitioner) {
+    public Practitioner sendPractitioner(Practitioner practitioner) {
         MethodOutcome methodOutcome = openelisFhirClient
                 .update()
                 .resource(practitioner)

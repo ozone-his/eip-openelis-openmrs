@@ -36,7 +36,7 @@ public class PatientProcessor implements Processor {
                 return;
             }
 
-            openelisPatientHandler.sendPatient(producerTemplate, openelisPatientHandler.buildPatient(patient));
+            openelisPatientHandler.sendPatient(openelisPatientHandler.buildPatient(patient));
         } catch (Exception e) {
             throw new CamelExecutionException("Error processing Patient", exchange, e);
         }

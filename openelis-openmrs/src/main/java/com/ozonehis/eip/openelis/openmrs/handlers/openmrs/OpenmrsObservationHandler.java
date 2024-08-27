@@ -11,7 +11,6 @@ import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +25,7 @@ public class OpenmrsObservationHandler {
     @Autowired
     @Qualifier("openmrsFhirClient") private IGenericClient openmrsFhirClient;
 
-    public Observation sendObservation(ProducerTemplate producerTemplate, Observation observation) {
+    public Observation sendObservation(Observation observation) {
         MethodOutcome methodOutcome = openmrsFhirClient
                 .create()
                 .resource(observation)

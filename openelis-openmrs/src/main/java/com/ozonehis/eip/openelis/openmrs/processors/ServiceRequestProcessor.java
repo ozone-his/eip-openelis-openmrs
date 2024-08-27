@@ -86,8 +86,7 @@ public class ServiceRequestProcessor implements Processor {
                 if ("c".equals(eventType) || "u".equals(eventType)) {
                     if (serviceRequest.getStatus().equals(ServiceRequest.ServiceRequestStatus.ACTIVE)
                             && serviceRequest.getIntent().equals(ServiceRequest.ServiceRequestIntent.ORDER)) {
-                        Task fetchedTask = openelisTaskHandler.getTaskByServiceRequestID(
-                                producerTemplate, serviceRequest.getIdPart());
+                        Task fetchedTask = openelisTaskHandler.getTaskByServiceRequestID(serviceRequest.getIdPart());
                         if (openelisTaskHandler.doesTaskExists(fetchedTask)) {
                             log.info("Task already exists for ServiceRequest {}", serviceRequest.getIdPart());
                             return;
@@ -99,25 +98,21 @@ public class ServiceRequestProcessor implements Processor {
                         serviceRequest.setRequester(requesterReference);
 
                         openelisPractitionerHandler.sendPractitioner(
-                                producerTemplate, openelisPractitionerHandler.buildPractitioner(serviceRequest));
-                        openelisPatientHandler.sendPatient(
-                                producerTemplate, openelisPatientHandler.buildPatient(patient));
-                        openelisServiceRequestHandler.sendServiceRequest(producerTemplate, serviceRequest);
-                        openelisLocationHandler.sendLocation(
-                                producerTemplate,
-                                openelisLocationHandler.buildLocation(
-                                        encounter.getLocationFirstRep().getLocation()));
-                        openelisTaskHandler.sendTask(
-                                producerTemplate, openelisTaskHandler.buildTask(serviceRequest, encounter));
-                        openmrsTaskHandler.sendTask(producerTemplate, openmrsTaskHandler.buildTask(serviceRequest));
+                                openelisPractitionerHandler.buildPractitioner(serviceRequest));
+                        openelisPatientHandler.sendPatient(openelisPatientHandler.buildPatient(patient));
+                        openelisServiceRequestHandler.sendServiceRequest(serviceRequest);
+                        openelisLocationHandler.sendLocation(openelisLocationHandler.buildLocation(
+                                encounter.getLocationFirstRep().getLocation()));
+                        openelisTaskHandler.sendTask(openelisTaskHandler.buildTask(serviceRequest, encounter));
+                        openmrsTaskHandler.sendTask(openmrsTaskHandler.buildTask(serviceRequest));
 
                     } else {
                         // Executed when MODIFY option is selected in OpenMRS
-                        cancelOpenelisLabOrder(producerTemplate, serviceRequest.getIdPart());
+                        cancelOpenelisLabOrder(serviceRequest.getIdPart());
                     }
                 } else if ("d".equals(eventType)) {
                     // Executed when DISCONTINUE option is selected in OpenMRS
-                    cancelOpenelisLabOrder(producerTemplate, serviceRequest.getIdPart());
+                    cancelOpenelisLabOrder(serviceRequest.getIdPart());
                 } else {
                     throw new IllegalArgumentException("Unsupported event type: " + eventType);
                 }
@@ -127,15 +122,15 @@ public class ServiceRequestProcessor implements Processor {
         }
     }
 
-    private void cancelOpenelisLabOrder(ProducerTemplate producerTemplate, String serviceRequestID) {
+    private void cancelOpenelisLabOrder(String serviceRequestID) {
         // Delete OpenELIS Task and then Delete OpenELIS ServiceRequest
-        Task openelisTask = openelisTaskHandler.getTaskByServiceRequestID(producerTemplate, serviceRequestID);
+        Task openelisTask = openelisTaskHandler.getTaskByServiceRequestID(serviceRequestID);
         if (openelisTaskHandler.doesTaskExists(openelisTask) && openelisTask.getStatus() == Task.TaskStatus.REQUESTED) {
-            openelisTaskHandler.deleteTask(producerTemplate, openelisTask.getIdPart());
-            openelisServiceRequestHandler.deleteServiceRequest(producerTemplate, serviceRequestID);
+            openelisTaskHandler.deleteTask(openelisTask.getIdPart());
+            openelisServiceRequestHandler.deleteServiceRequest(serviceRequestID);
         }
 
         // Reject OpenMRS Task
-        openmrsTaskHandler.rejectTaskByServiceRequestID(producerTemplate, serviceRequestID);
+        openmrsTaskHandler.rejectTaskByServiceRequestID(serviceRequestID);
     }
 }

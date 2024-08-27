@@ -10,7 +10,6 @@ package com.ozonehis.eip.openelis.openmrs.handlers.openelis;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Observation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -24,7 +23,7 @@ public class OpenelisObservationHandler {
     @Autowired
     @Qualifier("openelisFhirClient") private IGenericClient openelisFhirClient;
 
-    public Observation getObservationByObservationID(ProducerTemplate producerTemplate, String observationID) {
+    public Observation getObservationByObservationID(String observationID) {
         Observation observation = openelisFhirClient
                 .read()
                 .resource(Observation.class)

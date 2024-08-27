@@ -11,7 +11,6 @@ import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +25,7 @@ public class OpenelisServiceRequestHandler {
     @Autowired
     @Qualifier("openelisFhirClient") private IGenericClient openelisFhirClient;
 
-    public ServiceRequest sendServiceRequest(ProducerTemplate producerTemplate, ServiceRequest serviceRequest) {
+    public ServiceRequest sendServiceRequest(ServiceRequest serviceRequest) {
         MethodOutcome methodOutcome = openelisFhirClient
                 .update()
                 .resource(serviceRequest)
@@ -39,7 +38,7 @@ public class OpenelisServiceRequestHandler {
         return (ServiceRequest) methodOutcome.getResource();
     }
 
-    public void deleteServiceRequest(ProducerTemplate producerTemplate, String serviceRequestID) {
+    public void deleteServiceRequest(String serviceRequestID) {
         MethodOutcome methodOutcome = openelisFhirClient
                 .delete()
                 .resourceById(new IdType("ServiceRequest", serviceRequestID))

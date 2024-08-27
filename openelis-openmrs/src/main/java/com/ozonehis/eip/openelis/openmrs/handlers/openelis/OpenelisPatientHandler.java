@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +27,7 @@ public class OpenelisPatientHandler {
     @Autowired
     @Qualifier("openelisFhirClient") private IGenericClient openelisFhirClient;
 
-    public Patient sendPatient(ProducerTemplate producerTemplate, Patient patient) {
+    public Patient sendPatient(Patient patient) {
         MethodOutcome methodOutcome = openelisFhirClient
                 .update()
                 .resource(patient)

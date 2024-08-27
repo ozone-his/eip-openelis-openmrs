@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.UUID;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Reference;
@@ -33,7 +32,7 @@ public class OpenmrsTaskHandler {
     @Autowired
     @Qualifier("openmrsFhirClient") private IGenericClient openmrsFhirClient;
 
-    public void sendTask(ProducerTemplate producerTemplate, Task task) {
+    public void sendTask(Task task) {
         MethodOutcome methodOutcome = openmrsFhirClient
                 .create()
                 .resource(task)
@@ -44,7 +43,7 @@ public class OpenmrsTaskHandler {
         log.debug("OpenmrsTaskHandler: Task created {}", methodOutcome.getCreated());
     }
 
-    public Task updateTask(ProducerTemplate producerTemplate, Task task, String taskID) {
+    public Task updateTask(Task task, String taskID) {
         MethodOutcome methodOutcome = openmrsFhirClient.update().resource(task).execute();
 
         log.debug("OpenmrsTaskHandler: Task updateTask {}", methodOutcome.getCreated());
@@ -72,7 +71,7 @@ public class OpenmrsTaskHandler {
         return task != null && task.getId() != null && !task.getId().isEmpty() && task.getStatus() != null;
     }
 
-    public Task getTaskByServiceRequestID(ProducerTemplate producerTemplate, String serviceRequestID) {
+    public Task getTaskByServiceRequestID(String serviceRequestID) {
         Bundle bundle = openmrsFhirClient
                 .search()
                 .forResource(Task.class)
@@ -93,10 +92,10 @@ public class OpenmrsTaskHandler {
                 .orElse(null);
     }
 
-    public void rejectTaskByServiceRequestID(ProducerTemplate producerTemplate, String serviceRequestID) {
-        Task task = getTaskByServiceRequestID(producerTemplate, serviceRequestID);
+    public void rejectTaskByServiceRequestID(String serviceRequestID) {
+        Task task = getTaskByServiceRequestID(serviceRequestID);
         if (doesTaskExists(task)) {
-            updateTask(producerTemplate, markTaskRejected(task), task.getIdPart());
+            updateTask(markTaskRejected(task), task.getIdPart());
         }
     }
 
