@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
-import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.DiagnosticReport;
 import org.hl7.fhir.r4.model.Observation;
@@ -67,7 +66,7 @@ public class TaskProcessor implements Processor {
 
     @Override
     public void process(Exchange exchange) {
-        try (ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate()) {
+        try {
             Bundle bundle = exchange.getMessage().getBody(Bundle.class);
             List<Bundle.BundleEntryComponent> entries = bundle.getEntry();
             for (Bundle.BundleEntryComponent entry : entries) {

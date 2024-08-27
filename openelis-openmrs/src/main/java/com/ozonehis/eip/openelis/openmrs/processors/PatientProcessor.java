@@ -14,7 +14,6 @@ import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.Processor;
-import org.apache.camel.ProducerTemplate;
 import org.hl7.fhir.r4.model.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,7 +27,7 @@ public class PatientProcessor implements Processor {
 
     @Override
     public void process(Exchange exchange) {
-        try (ProducerTemplate producerTemplate = exchange.getContext().createProducerTemplate()) {
+        try {
             Message message = exchange.getMessage();
             Patient patient = message.getBody(Patient.class);
 
