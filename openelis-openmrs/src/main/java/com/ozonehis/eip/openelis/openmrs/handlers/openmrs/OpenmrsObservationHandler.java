@@ -26,12 +26,8 @@ public class OpenmrsObservationHandler {
     @Qualifier("openmrsFhirClient") private IGenericClient openmrsFhirClient;
 
     public Observation sendObservation(Observation observation) {
-        MethodOutcome methodOutcome = openmrsFhirClient
-                .create()
-                .resource(observation)
-                .prettyPrint()
-                .encodedJson()
-                .execute();
+        MethodOutcome methodOutcome =
+                openmrsFhirClient.create().resource(observation).encodedJson().execute();
 
         log.debug("OpenmrsObservationHandler: Observation created {}", methodOutcome.getCreated());
         return (Observation) methodOutcome.getResource();

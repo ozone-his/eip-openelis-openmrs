@@ -29,12 +29,8 @@ public class OpenelisPractitionerHandler {
     @Qualifier("openelisFhirClient") private IGenericClient openelisFhirClient;
 
     public Practitioner sendPractitioner(Practitioner practitioner) {
-        MethodOutcome methodOutcome = openelisFhirClient
-                .update()
-                .resource(practitioner)
-                .prettyPrint()
-                .encodedJson()
-                .execute();
+        MethodOutcome methodOutcome =
+                openelisFhirClient.update().resource(practitioner).encodedJson().execute();
 
         log.debug("OpenelisPractitionerHandler: Practitioner created {}", methodOutcome.getCreated());
 

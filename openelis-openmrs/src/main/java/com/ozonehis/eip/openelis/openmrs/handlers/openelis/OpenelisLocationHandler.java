@@ -26,12 +26,8 @@ public class OpenelisLocationHandler {
     @Qualifier("openelisFhirClient") private IGenericClient openelisFhirClient;
 
     public Location sendLocation(Location location) {
-        MethodOutcome methodOutcome = openelisFhirClient
-                .update()
-                .resource(location)
-                .prettyPrint()
-                .encodedJson()
-                .execute();
+        MethodOutcome methodOutcome =
+                openelisFhirClient.update().resource(location).encodedJson().execute();
 
         log.debug("OpenelisLocationHandler: Location created {}", methodOutcome.getCreated());
         return (Location) methodOutcome.getResource();

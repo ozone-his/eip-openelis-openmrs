@@ -32,7 +32,6 @@ public class OpenmrsDiagnosticReportHandler {
         MethodOutcome methodOutcome = openmrsFhirClient
                 .create()
                 .resource(diagnosticReport)
-                .prettyPrint()
                 .encodedJson()
                 .execute();
 

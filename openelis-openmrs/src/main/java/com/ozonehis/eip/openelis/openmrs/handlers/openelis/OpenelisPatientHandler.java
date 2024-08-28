@@ -28,12 +28,8 @@ public class OpenelisPatientHandler {
     @Qualifier("openelisFhirClient") private IGenericClient openelisFhirClient;
 
     public Patient sendPatient(Patient patient) {
-        MethodOutcome methodOutcome = openelisFhirClient
-                .update()
-                .resource(patient)
-                .prettyPrint()
-                .encodedJson()
-                .execute();
+        MethodOutcome methodOutcome =
+                openelisFhirClient.update().resource(patient).encodedJson().execute();
 
         log.debug("OpenelisPatientHandler: Patient created {}", methodOutcome.getCreated());
 

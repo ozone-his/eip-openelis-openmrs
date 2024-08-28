@@ -35,12 +35,8 @@ public class OpenelisTaskHandler {
     @Qualifier("openelisFhirClient") private IGenericClient openelisFhirClient;
 
     public Task sendTask(Task task) {
-        MethodOutcome methodOutcome = openelisFhirClient
-                .update()
-                .resource(task)
-                .prettyPrint()
-                .encodedJson()
-                .execute();
+        MethodOutcome methodOutcome =
+                openelisFhirClient.update().resource(task).encodedJson().execute();
 
         log.debug("OpenelisTaskHandler: Task created {}", methodOutcome.getCreated());
 

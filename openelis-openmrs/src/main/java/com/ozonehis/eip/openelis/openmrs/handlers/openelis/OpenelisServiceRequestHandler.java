@@ -29,7 +29,6 @@ public class OpenelisServiceRequestHandler {
         MethodOutcome methodOutcome = openelisFhirClient
                 .update()
                 .resource(serviceRequest)
-                .prettyPrint()
                 .encodedJson()
                 .execute();
 

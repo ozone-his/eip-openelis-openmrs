@@ -33,12 +33,8 @@ public class OpenmrsTaskHandler {
     @Qualifier("openmrsFhirClient") private IGenericClient openmrsFhirClient;
 
     public void sendTask(Task task) {
-        MethodOutcome methodOutcome = openmrsFhirClient
-                .create()
-                .resource(task)
-                .prettyPrint()
-                .encodedJson()
-                .execute();
+        MethodOutcome methodOutcome =
+                openmrsFhirClient.create().resource(task).encodedJson().execute();
 
         log.debug("OpenmrsTaskHandler: Task created {}", methodOutcome.getCreated());
     }
