@@ -10,6 +10,7 @@ package com.ozonehis.eip.openelis.openmrs.processors;
 import com.ozonehis.eip.openelis.openmrs.handlers.openelis.OpenelisPatientHandler;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
@@ -18,6 +19,7 @@ import org.hl7.fhir.r4.model.Patient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Setter
 @Getter
 @Component
@@ -35,7 +37,9 @@ public class PatientProcessor implements Processor {
                 return;
             }
 
-            openelisPatientHandler.sendPatient(openelisPatientHandler.buildPatient(patient));
+            Patient openelisPatient = openelisPatientHandler.buildPatient(patient);
+            Patient savedOpenelisPatient = openelisPatientHandler.sendPatient(openelisPatient);
+            log.debug("Patient saved in Openelis with id {}", savedOpenelisPatient.getId());
         } catch (Exception e) {
             throw new CamelExecutionException("Error processing Patient", exchange, e);
         }

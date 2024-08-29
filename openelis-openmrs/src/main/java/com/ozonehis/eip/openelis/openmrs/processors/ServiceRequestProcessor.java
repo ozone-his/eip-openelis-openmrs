@@ -107,10 +107,12 @@ public class ServiceRequestProcessor implements Processor {
 
                     } else {
                         // Executed when MODIFY option is selected in OpenMRS
+                        // TODO: Should not delete ServiceRequest from OpenELIS but mark it as REVOKED
                         cancelOpenelisLabOrder(serviceRequest.getIdPart());
                     }
                 } else if ("d".equals(eventType)) {
                     // Executed when DISCONTINUE option is selected in OpenMRS
+                    // TODO: Should not delete ServiceRequest from OpenELIS but mark it as REVOKED
                     cancelOpenelisLabOrder(serviceRequest.getIdPart());
                 } else {
                     throw new IllegalArgumentException("Unsupported event type: " + eventType);
