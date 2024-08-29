@@ -50,7 +50,7 @@ public class OpenelisTaskHandler {
                 .returnBundle(Bundle.class)
                 .execute();
 
-        log.info("OpenelisTaskHandler: Task getTaskByServiceRequestID {}", bundle.getId());
+        log.debug("OpenelisTaskHandler: Task getTaskByServiceRequestID {}", bundle.getId());
 
         return bundle.getEntry().stream()
                 .map(Bundle.BundleEntryComponent::getResource)

@@ -40,7 +40,8 @@ public class OpenmrsTaskHandler {
     }
 
     public Task updateTask(Task task, String taskID) {
-        MethodOutcome methodOutcome = openmrsFhirClient.update().resource(task).execute();
+        MethodOutcome methodOutcome =
+                openmrsFhirClient.update().resource(task).encodedJson().execute();
 
         log.debug("OpenmrsTaskHandler: Task updateTask {}", methodOutcome.getCreated());
 
@@ -74,7 +75,7 @@ public class OpenmrsTaskHandler {
                 .returnBundle(Bundle.class)
                 .execute();
 
-        log.info("OpenmrsTaskHandler: Task getTaskByServiceRequestID {}", bundle.getId());
+        log.debug("OpenmrsTaskHandler: Task getTaskByServiceRequestID {}", bundle.getId());
 
         return bundle.getEntry().stream()
                 .map(Bundle.BundleEntryComponent::getResource)
