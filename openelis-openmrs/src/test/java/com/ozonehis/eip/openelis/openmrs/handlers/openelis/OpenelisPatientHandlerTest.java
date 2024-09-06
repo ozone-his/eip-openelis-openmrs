@@ -55,7 +55,7 @@ class OpenelisPatientHandlerTest {
     }
 
     @Test
-    void sendPatient() {
+    void shouldSavePatientInOpenelisGivenPatient() {
         // Setup
         String patientID = UUID.randomUUID().toString();
         Patient patient = new Patient();

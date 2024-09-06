@@ -55,7 +55,7 @@ class OpenelisLocationHandlerTest {
     }
 
     @Test
-    void sendLocation() {
+    void shouldSaveLocationInOpenelisGivenLocation() {
         // Setup
         String locationID = UUID.randomUUID().toString();
         Location location = new Location();

@@ -77,7 +77,7 @@ class OpenelisTaskHandlerTest {
     }
 
     @Test
-    void sendTask() {
+    void shouldSaveTaskInOpenelisGivenTask() {
         // Setup
         String taskID = UUID.randomUUID().toString();
         Task task = new Task();
@@ -103,7 +103,7 @@ class OpenelisTaskHandlerTest {
     }
 
     @Test
-    void getTaskByServiceRequestID() {
+    void shouldReturnTaskGivenServiceRequestID() {
         // Setup
         String serviceRequestID = UUID.randomUUID().toString();
         String taskID = UUID.randomUUID().toString();
@@ -132,7 +132,7 @@ class OpenelisTaskHandlerTest {
     }
 
     @Test
-    void deleteTask() {
+    void shouldDeleteFromOpenelisTaskGivenTaskID() {
         // Setup
         String taskID = UUID.randomUUID().toString();
         MethodOutcome methodOutcome = new MethodOutcome();

@@ -52,7 +52,7 @@ class OpenelisObservationHandlerTest {
     }
 
     @Test
-    void getObservationByObservationID() {
+    void shouldReturnObservationGivenObservationID() {
         // Setup
         String observationID = UUID.randomUUID().toString();
         Observation observation = new Observation();

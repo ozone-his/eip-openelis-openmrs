@@ -76,7 +76,7 @@ class OpenmrsTaskHandlerTest {
     }
 
     @Test
-    void sendTask() {
+    void shouldSaveTaskInOpenmrsGivenTask() {
         // Setup
         String taskID = UUID.randomUUID().toString();
         Task task = new Task();
@@ -100,7 +100,7 @@ class OpenmrsTaskHandlerTest {
     }
 
     @Test
-    void updateTask() {
+    void shouldUpdateTaskInOpenmrsGivenTask() {
         // Setup
         String taskID = UUID.randomUUID().toString();
         Task task = new Task();
@@ -126,7 +126,7 @@ class OpenmrsTaskHandlerTest {
     }
 
     @Test
-    void getTaskByServiceRequestID() {
+    void shouldReturnTaskGivenServiceRequestID() {
         // Setup
         String serviceRequestID = UUID.randomUUID().toString();
         String taskID = UUID.randomUUID().toString();

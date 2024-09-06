@@ -66,7 +66,7 @@ class OpenelisServiceRequestHandlerTest {
     }
 
     @Test
-    void sendServiceRequest() {
+    void shouldSaveServiceRequestInOpenelisGivenServiceRequest() {
         // Setup
         String serviceRequestID = UUID.randomUUID().toString();
         ServiceRequest serviceRequest = new ServiceRequest();
@@ -92,7 +92,7 @@ class OpenelisServiceRequestHandlerTest {
     }
 
     @Test
-    void deleteServiceRequest() {
+    void shouldDeleteServiceRequestFromOpenelisGivenServiceRequestID() {
         // Setup
         String serviceRequestID = UUID.randomUUID().toString();
         MethodOutcome methodOutcome = new MethodOutcome();

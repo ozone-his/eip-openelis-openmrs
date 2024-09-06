@@ -55,7 +55,7 @@ class PatientProcessorTest extends BaseProcessorTest {
     }
 
     @Test
-    void shouldProcessPatient() {
+    void shouldSavePatientInOpenelisGivenPatient() {
         // Arrange
         Patient patient = new Patient();
         patient.setId(PATIENT_ID);
@@ -89,7 +89,7 @@ class PatientProcessorTest extends BaseProcessorTest {
     }
 
     @Test
-    void shouldReturnWithSavingPatientInOpenelisWhenPatientIsNull() {
+    void shouldNotSavePatientInOpenelisWhenPatientIsNull() {
         // Arrange
         Patient patient = null;
 

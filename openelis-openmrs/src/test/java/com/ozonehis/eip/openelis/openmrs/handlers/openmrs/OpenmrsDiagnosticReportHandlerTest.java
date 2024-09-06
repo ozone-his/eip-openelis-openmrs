@@ -52,7 +52,7 @@ class OpenmrsDiagnosticReportHandlerTest {
     }
 
     @Test
-    void sendDiagnosticReport() {
+    void shouldSaveDiagnosticReportInOpenmrsGivenDiagnosticReport() {
         // Setup
         String diagnosticReportID = UUID.randomUUID().toString();
         DiagnosticReport diagnosticReport = new DiagnosticReport();

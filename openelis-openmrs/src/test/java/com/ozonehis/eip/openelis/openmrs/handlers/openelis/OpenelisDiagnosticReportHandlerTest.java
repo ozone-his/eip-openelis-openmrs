@@ -53,7 +53,7 @@ class OpenelisDiagnosticReportHandlerTest {
     }
 
     @Test
-    void getDiagnosticReportByDiagnosticReportID() {
+    void shouldReturnDiagnosticReportGivenDiagnosticReportID() {
         // Setup
         String diagnosticReportID = UUID.randomUUID().toString();
         DiagnosticReport diagnosticReport = new DiagnosticReport();

@@ -55,7 +55,7 @@ class OpenelisPractitionerHandlerTest {
     }
 
     @Test
-    void sendPractitioner() {
+    void shouldSavePractitionerInOpenelisGivenPractitioner() {
         // Setup
         String practitionerID = UUID.randomUUID().toString();
         Practitioner practitioner = new Practitioner();

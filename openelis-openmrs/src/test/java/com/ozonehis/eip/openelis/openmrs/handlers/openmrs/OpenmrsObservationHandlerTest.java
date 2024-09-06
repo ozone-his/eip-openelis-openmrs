@@ -52,7 +52,7 @@ class OpenmrsObservationHandlerTest {
     }
 
     @Test
-    void sendObservation() {
+    void shouldSaveObservationInOpenmrsGivenObservation() {
         // Setup
         String observationID = UUID.randomUUID().toString();
         Observation observation = new Observation();
