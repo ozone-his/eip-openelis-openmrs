@@ -34,7 +34,7 @@ public class PatientRouting extends RouteBuilder {
             .routeId("openmrs-patient-to-openelis-patient-router")
             .filter(exchange -> exchange.getMessage().getBody() instanceof Patient)
             .log(LoggingLevel.INFO, "Processing Patient")
-            .filter(exchange -> false)
+            .filter(exchange -> false)// TODO: Add config to enable/disable automatic Patient sync
             .process(patientProcessor)
             .end();
 
