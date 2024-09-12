@@ -23,7 +23,9 @@ Apache camel routes that integrate [OpenELIS](https://github.com/I-TECH-UW/OpenE
 The integration is incomplete and work is paused until all the prerequisites are implemented on OpenELIS Global.
 ```
 
-List of TODOs for OpenELIS Global can be tracked on this public [Notion](https://www.notion.so/mekom/e13ade2febe545689496c46a51115619?v=490643690d374eb4a105c11edf7efbb6) board.
+List of TODOs for OpenELIS Global can be tracked on this public [Notion](https://mekom.notion.site/e13ade2febe545689496c46a51115619?v=490643690d374eb4a105c11edf7efbb6&pvs=4) board.
+
+[Click here](https://drive.google.com/drive/u/7/folders/1eDUR95U-MozCIXEHDUvrkqNJZE1f8DeF) to watch the screen recordings of the OpenMRS-OpenELIS integration.
 
 ---
 
@@ -246,10 +248,3 @@ Make the following changes in your Ozone Distro.
 - After setting up OpenELIS and Ozone distro, start the Ozone environment using `./start.sh` command.
 - Once the Ozone distro is up and running create a Patient and start a Visit, add a Lab Order Eg. (Red Blood Cell) and save.
 - This Lab Order should be visible under `Order`->`Incoming Orders`->`Search`
-
-
-----------------------------------------------------
-
-### Demo
-
-Watch the demo video. [Link](https://openmrs.atlassian.net/wiki/spaces/projects/pages/26938839/OpenMRS+Interoperability+and+Integration+Updates#OEG-integration%3A)
