@@ -13,7 +13,7 @@
     <a href="https://docs.ozone-his.com/">Docs</a>&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://talk.openmrs.org/c/software/ozone-his/70">Forum</a>&nbsp;&nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://openmrs.slack.com/archives/C02PYQD5D0A">Chat Room</a>
 </h3>
 
-# EIP OpenELIS OpenMRS
+# OpenELIS-OpenMRS Flows
 
 ### Introduction
 
@@ -23,7 +23,9 @@ Apache camel routes that integrate [OpenELIS](https://github.com/I-TECH-UW/OpenE
 The integration is incomplete and work is paused until all the prerequisites are implemented on OpenELIS Global.
 ```
 
-List of TODOs for OpenELIS Global can be tracked on this public [Notion](https://www.notion.so/mekom/e13ade2febe545689496c46a51115619?v=490643690d374eb4a105c11edf7efbb6) board.
+List of TODOs for OpenELIS Global can be tracked on this public [Notion](https://mekom.notion.site/e13ade2febe545689496c46a51115619?v=490643690d374eb4a105c11edf7efbb6&pvs=4) board.
+
+[Click here](https://drive.google.com/drive/u/7/folders/1eDUR95U-MozCIXEHDUvrkqNJZE1f8DeF) to watch the screen recordings of the OpenMRS-OpenELIS integration.
 
 ---
 
@@ -37,17 +39,45 @@ appropriate action in an odoo system.
 If you don't have an existing OpenMRS EIP based application, you will need to first create one as
 [documented here](https://github.com/openmrs/openmrs-eip/tree/master/docs/custom), then add the camel routes
 provided in this project and application properties.
+
+----------------------------------------------------
+
+### Architecture
+
+#### 1. **Lab Order Creation in OpenMRS**
+- When a Lab Order is created in OpenMRS, the following resources are created in OpenELIS (assuming LOINC mapping exists in OpenELIS):
+  - `Practitioner`
+  - `Patient`
+  - `ServiceRequest`
+  - `Location`
+  - `Task`
+
+#### 2. **Incoming Order in OpenELIS**
+- Every `x` minutes, OpenELIS triggers a workflow to look for `Task`s in `REQUESTED` status.
+- The `Task` resource must have reference to **existing** `ServiceRequest`, `Practitioner`, `Location`, and `Patient` resources in the remote FHIR server.
+- The `Task` is converted into an `Incoming Order` stored in the OpenELIS database and shown in the .
+
+
+#### 3. **Lab Result between OpenELIS and OpenMRS**
+- A `Task` is created in OpenMRS to track the Lab Order status in OpenELIS.
+- Polling Mechanism:
+  - Every `y` minutes, OpenMRS polls `Tasks` with `REQUESTED` or `ACCEPTED` status.
+  - For each `Task`, the corresponding `Task` in OpenELIS is fetched.
+- Status Update:
+  - If the OpenELIS `Task` status is updated to `COMPLETED`, the corresponding `DiagnosticReport` and `Observation` are fetched from OpenELIS and saved in OpenMRS.
+  - The OpenMRS `Task` status is also updated to `COMPLETED`.
+
 ----------------------------------------------------
 
 ### Integrations
 
-|      Integration      |        Sync        |         Status          |
-|-----------------------|--------------------|-------------------------|
-| Patient               | OpenMRS ⮕ OpenELIS | ✅                       |
-| Lab Order             | OpenMRS ⮕ OpenELIS | 🚧 Panels not supported |
-| Lab Order Result      | OpenELIS ⮕ OpenMRS | ✅                       |
-| Modify Lab Order      | OpenMRS ⮕ OpenELIS | ❌                       |
-| Discontinue Lab Order | OpenMRS ⮕ OpenELIS | ❌                       |
+|      Integration      |        Sync        | Status                   | Unit Test |
+|-----------------------|--------------------|--------------------------|-----------|
+| Patient               | OpenMRS ⮕ OpenELIS | ✅                        | ✅         |
+| Lab Order             | OpenMRS ⮕ OpenELIS | 🚧 Panels not supported | ✅         |
+| Lab Order Result      | OpenELIS ⮕ OpenMRS | ✅                       | ✅         |
+| Modify Lab Order      | OpenMRS ⮕ OpenELIS | ❌                       | ❌         |
+| Discontinue Lab Order | OpenMRS ⮕ OpenELIS | ❌                      | ❌         |
 
 ---
 
@@ -218,4 +248,3 @@ Make the following changes in your Ozone Distro.
 - After setting up OpenELIS and Ozone distro, start the Ozone environment using `./start.sh` command.
 - Once the Ozone distro is up and running create a Patient and start a Visit, add a Lab Order Eg. (Red Blood Cell) and save.
 - This Lab Order should be visible under `Order`->`Incoming Orders`->`Search`
-
