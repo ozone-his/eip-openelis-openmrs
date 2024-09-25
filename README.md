@@ -32,9 +32,9 @@ List of TODOs for OpenELIS Global can be tracked on this public [Notion](https:/
 ### Technical Overview
 
 The project is built on top of [OpenMRS-EIP core](https://github.com/openmrs/openmrs-eip), so the assumption is that
-you have an existing OpenMRS EIP based application and wish to add to it odoo integration logic. The project contains
+you have an existing OpenMRS EIP based application and wish to add to it OpenELIS integration logic. The project contains
 camel routes that track inserts, updates and delete operations in specific tables in an OpenMRS database to take
-appropriate action in an odoo system.
+appropriate action in an OpenELIS system.
 
 If you don't have an existing OpenMRS EIP based application, you will need to first create one as
 [documented here](https://github.com/openmrs/openmrs-eip/tree/master/docs/custom), then add the camel routes
