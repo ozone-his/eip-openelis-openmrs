@@ -45,6 +45,7 @@ provided in this project and application properties.
 ### Architecture
 
 #### 1. **Lab Order Creation in OpenMRS**
+
 - When a Lab Order is created in OpenMRS, the following resources are created in OpenELIS (assuming LOINC mapping exists in OpenELIS):
   - `Practitioner`
   - `Patient`
@@ -53,12 +54,13 @@ provided in this project and application properties.
   - `Task`
 
 #### 2. **Incoming Order in OpenELIS**
+
 - Every `x` minutes, OpenELIS triggers a workflow to look for `Task`s in `REQUESTED` status.
 - The `Task` resource must have reference to **existing** `ServiceRequest`, `Practitioner`, `Location`, and `Patient` resources in the remote FHIR server.
 - The `Task` is converted into an `Incoming Order` stored in the OpenELIS database and shown in the .
 
-
 #### 3. **Lab Result between OpenELIS and OpenMRS**
+
 - A `Task` is created in OpenMRS to track the Lab Order status in OpenELIS.
 - Polling Mechanism:
   - Every `y` minutes, OpenMRS polls `Tasks` with `REQUESTED` or `ACCEPTED` status.
@@ -71,13 +73,13 @@ provided in this project and application properties.
 
 ### Integrations
 
-|      Integration      |        Sync        | Status                   | Unit Test |
-|-----------------------|--------------------|--------------------------|-----------|
-| Patient               | OpenMRS ⮕ OpenELIS | ✅                        | ✅         |
+|      Integration      |        Sync        |         Status          | Unit Test |
+|-----------------------|--------------------|-------------------------|-----------|
+| Patient               | OpenMRS ⮕ OpenELIS | ✅                       | ✅         |
 | Lab Order             | OpenMRS ⮕ OpenELIS | 🚧 Panels not supported | ✅         |
 | Lab Order Result      | OpenELIS ⮕ OpenMRS | ✅                       | ✅         |
 | Modify Lab Order      | OpenMRS ⮕ OpenELIS | ❌                       | ❌         |
-| Discontinue Lab Order | OpenMRS ⮕ OpenELIS | ❌                      | ❌         |
+| Discontinue Lab Order | OpenMRS ⮕ OpenELIS | ❌                       | ❌         |
 
 ---
 
@@ -248,3 +250,4 @@ Make the following changes in your Ozone Distro.
 - After setting up OpenELIS and Ozone distro, start the Ozone environment using `./start.sh` command.
 - Once the Ozone distro is up and running create a Patient and start a Visit, add a Lab Order Eg. (Red Blood Cell) and save.
 - This Lab Order should be visible under `Order`->`Incoming Orders`->`Search`
+
