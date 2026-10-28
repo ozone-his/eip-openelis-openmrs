@@ -54,14 +54,13 @@
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
     <lombok.version>1.18.30</lombok.version>
-    <eip.client.version>2.4.0-SNAPSHOT</eip.client.version>
+    <eip.client.version>2.5.0-SNAPSHOT</eip.client.version>
     <openmrs.watcher.version>4.0.0-SNAPSHOT</openmrs.watcher.version>
     <camel.version>4.1.0</camel.version>
     <spring-boot.version>3.1.4</spring-boot.version>
     <fhir-r4.version>7.0.0</fhir-r4.version>
     <openmrs.fhir.version>4.0.0-SNAPSHOT</openmrs.fhir.version>
     <test.containers.version>1.19.3</test.containers.version>
-    <ozone.version>1.0.0-SNAPSHOT</ozone.version>
     <skipTests>false</skipTests>
     <skipUnitTests>${skipTests}</skipUnitTests>
     <skipIntegrationTests>${skipTests}</skipIntegrationTests>
